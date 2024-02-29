@@ -3,20 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Справка</title>
 </head>
 <body>
     <h1>Руководство пользователя:</h1>
     <h2>Окно программы:</h2>
-    /*![program](https://github.com/bruhspirit/coursework/assets/160126744/2bab9c1c-d591-47bb-8b42-13dc32e351af)*/
+    <img src="program.png" alt="">
     <h2>Файл:</h2>
-    ![fileoptions](https://github.com/bruhspirit/coursework/assets/160126744/ebf9e9af-73ed-4448-82d3-e854fe6bdaeb)
+    <img src="![program](https://github.com/bruhspirit/coursework/assets/160126744/83e722b5-6ae8-4141-8c3b-ff38ced43d6a)
+" alt="">
     <p><strong>Создать</strong> - создает файл с указанным именем и с указанной директорией. Функция также доступна на панели инструментов.</p>
     <p><strong>Открыть</strong> - открывает файл с указанным именем и с указанной директорией. Функция также доступна на панели инструментов.</p>
     <p><strong>Сохранить</strong> - сохраняет изменения в открытом файле. Функция также доступна на панели инструментов.</p>
     <p><strong>Сохранить как</strong> - сохраняет файл с указанным именем и с указанной директорией.</p>
     <p><strong>Выход</strong> - закрывает открытый файл.</p>
     <h2>Правка:</h2>
-    ![editoptions](https://github.com/bruhspirit/coursework/assets/160126744/ec239b25-6546-4377-aa64-cef7c1dc2898)
+    <img src="editoptions.png" alt="">
     <p><strong>Отменить</strong> - отменяет последнее изменение в файле. Функция также доступна на панели инструментов.</p>
     <p><strong>Повторить</strong> - повторяет последнее отмененное изменение в файле. Функция также доступна на панели инструментов.</p>
     <p><strong>Вырезать</strong> - вырезает и сохраняет в буфере обмена выделенный текст. Функция также доступна на панели инструментов.</p>
@@ -25,10 +27,11 @@
     <p><strong>Удалить</strong> - удаляет выделенный текст.</p>
     <p><strong>Выделить все</strong> - выделяет весь текст в документе.</p>
     <h2>Настройки</h2>
-    ![settings](https://github.com/bruhspirit/coursework/assets/160126744/ca881c1b-e434-453f-8f2a-1195a7563672)
+    <img src="settings.png" alt="">
     <p><strong>Язык</strong> - смена языка в программе.</p>
     <h2>Панель инструментов</h2>
-    ![toolbar](https://github.com/bruhspirit/coursework/assets/160126744/1479dca9-4c51-4823-8c49-4949d711bde3)
+    <img src="toolbar.png" alt="">
     <p>Содержит функции для работы с текстом, а также кнопки для запуска, вызова справки, информации о программе и изменения размера шрифта в программе. При наведении на элементы пользователь может увидеть подсказки, описывающие действия, назначенные кнопкам.</p>
+
 </body>
 </html>
