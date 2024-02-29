@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+![program](https://github.com/bruhspirit/coursework/assets/160126744/a0882455-fca9-49de-b9ec-78e9ec556bdc)<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
