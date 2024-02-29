@@ -558,7 +558,7 @@ namespace CompilerLab
             int strings_counter = 0;
             List<string> strings = new List<string>();
             string word_buffer = "";
-            MessageBox.Show(Input.Text.Length + "");
+
             for (int i = 0; i < Input.Text.Length; i++)
             {
                 if (Input.Text[i] == '\n')
