@@ -1,4 +1,4 @@
-﻿using Avalonia.Styling;
+using Avalonia.Styling;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -558,7 +558,6 @@ namespace CompilerLab
             int strings_counter = 0;
             List<string> strings = new List<string>();
             string word_buffer = "";
-
             for (int i = 0; i < Input.Text.Length; i++)
             {
                 if (Input.Text[i] == '\n')
@@ -608,6 +607,21 @@ namespace CompilerLab
             public string Symbol { get; set; }
             public string String { get; set; }
         }
+
+        private bool IdCheck(string str)
+        {
+            bool isEnglish = true;
+
+            foreach (char c in str)
+            {
+                if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')))
+                {
+                    isEnglish = false;
+                    break;
+                }
+            }
+            return isEnglish;
+        }
         private void CheckCodes(string word, int strings_count, int sym, bool end)
         {
             int code = 0;
@@ -634,7 +648,7 @@ namespace CompilerLab
             {
                 code = 4;
                 type = "Ключевое слово";
-            }
+            }  
             else if (word == "true")
             {
                 code = 6;
@@ -691,6 +705,11 @@ namespace CompilerLab
             {
                 code = 16;
                 type = "Символ";
+            }
+            else if (IdCheck(word))
+            {
+                code = 5;
+                type = "Идентификатор";
             }
             else
             {
