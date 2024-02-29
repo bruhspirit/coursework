@@ -7,7 +7,7 @@
 <body>
     <h1>Руководство пользователя:</h1>
     <h2>Окно программы:</h2>
-    ![program](https://github.com/bruhspirit/coursework/assets/160126744/2bab9c1c-d591-47bb-8b42-13dc32e351af)
+    /*![program](https://github.com/bruhspirit/coursework/assets/160126744/2bab9c1c-d591-47bb-8b42-13dc32e351af)*/
     <h2>Файл:</h2>
     ![fileoptions](https://github.com/bruhspirit/coursework/assets/160126744/ebf9e9af-73ed-4448-82d3-e854fe6bdaeb)
     <p><strong>Создать</strong> - создает файл с указанным именем и с указанной директорией. Функция также доступна на панели инструментов.</p>
