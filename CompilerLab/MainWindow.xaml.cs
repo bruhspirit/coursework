@@ -701,7 +701,7 @@ namespace CompilerLab
                 code = 15;
                 type = "Строка";
             }
-            else if (word[0] == '\'' && word.Last() == '\'')
+            else if (word[0] == '\'' && word.Last() == '\'' && word.Length == 3)
             {
                 code = 16;
                 type = "Символ";
