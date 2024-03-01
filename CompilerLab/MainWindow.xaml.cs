@@ -561,7 +561,7 @@ namespace CompilerLab
             for (int i = 0; i < Input.Text.Length; i++)
             {
                 if (Input.Text[i] == '\n')
-                {
+                {      
                     strings_counter++;
                     CheckCodes(word_buffer, strings_counter, i-1, true);
                     word_buffer = "";                 
@@ -570,6 +570,7 @@ namespace CompilerLab
                 }
                 if (((((i + 1) < Input.Text.Length)  && Input.Text[i + 1] == '\r') || i == Input.Text.Length - 1) && Input.Text[i] == '\n')
                 {
+                    strings_counter++;
                     word_buffer += Input.Text[i]; 
                     if (word_buffer != "")
                         CheckCodes(word_buffer, strings_counter, i, true);
@@ -581,6 +582,8 @@ namespace CompilerLab
 
                 if (i == Input.Text.Length - 1)
                 {
+                    strings_counter++;
+                    word_buffer += Input.Text[i];
                     CheckCodes(word_buffer, strings_counter, i, true);
                 }
 
@@ -659,7 +662,7 @@ namespace CompilerLab
                 code = 7;
                 type = "Ключевое слово";
             }
-            else if (word == " ")
+            else if (word == " " || word == ";" || word == ",")
             {
                 code = 8;
                 type = "Разделитель";
