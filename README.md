@@ -18,5 +18,7 @@
     <img src="https://github.com/bruhspirit/coursework/assets/160126744/0aeedc28-8b90-4fb5-89c6-0cb7f150f2ec" alt=""> 
     <h2>Текстовые примеры</h2>  
     <img src="https://github.com/bruhspirit/coursework/assets/160126744/7de6a84c-03fc-4086-8f8d-5b0236a27039" alt=""> 
+    <img src="https://github.com/bruhspirit/coursework/assets/160126744/db14f733-339b-489e-945e-6dfb71961fbc" alt=""> 
+    <img src="https://github.com/bruhspirit/coursework/assets/160126744/94f54fde-032f-47d1-a847-c2799949abf1" alt=""> 
 </html>
 
