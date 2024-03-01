@@ -1,4 +1,4 @@
-﻿<Window x:Class="CompilerLab.MainWindow"
+<Window x:Class="CompilerLab.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -71,7 +71,7 @@
                     <MenuItem Header="English" Click="SwitchToEnglish"></MenuItem>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="Пуск" Name="RunOption" IsEnabled="False"></MenuItem>
+            <MenuItem Header="Пуск" Name="RunOption" IsEnabled="False" Click="Run"></MenuItem>
         </Menu>
 
         <Button Grid.Column="0" Grid.Row="1" Margin="5,5,5,5" Cursor="Hand" Background="Transparent" BorderThickness="0" ToolTip="Создать файл" Click="CreateFileDialog" Name="CreateFileButton">
