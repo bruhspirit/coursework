@@ -15,7 +15,7 @@
     <p>3) Встроить сканер в ранее разработанный интерфейс текстового редактора. Учесть, что текст для разбора может состоять из множества строк.</p>
     <h2>Вариант задания: Объявление списка с инициализацией на языке Python</h2>
     <h2>List = [1 , 2 , 3 , "gfd" , 2,3]</h2>  
-    <img src="https://github.com/bruhspirit/coursework/assets/160126744/0aeedc28-8b90-4fb5-89c6-0cb7f150f2ec" alt=""> 
+    <img src="https://github.com/bruhspirit/coursework/assets/160126744/bf5ad544-9c67-4e9b-8c7f-e716ae6926b9" alt=""> 
     <h2>Текстовые примеры</h2>  
     <img src="https://github.com/bruhspirit/coursework/assets/160126744/7de6a84c-03fc-4086-8f8d-5b0236a27039" alt=""> 
     <img src="https://github.com/bruhspirit/coursework/assets/160126744/db14f733-339b-489e-945e-6dfb71961fbc" alt=""> 
