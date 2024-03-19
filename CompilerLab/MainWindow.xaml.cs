@@ -31,7 +31,7 @@ namespace CompilerLab
         {
             InitializeComponent();
             Loaded += MainWindow_Loaded;
-            
+
         }
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -52,7 +52,7 @@ namespace CompilerLab
                     using (StreamWriter writer = new StreamWriter(filename, false))
                     {
                         writer.WriteLine(Input.Text);
-                    }      
+                    }
                 }
                 else if (closeFileWindow.IsCanceled) { }
                 else
@@ -62,9 +62,9 @@ namespace CompilerLab
             }
 
             var dialog = new Microsoft.Win32.SaveFileDialog();
-            dialog.FileName = "Document"; 
-            dialog.DefaultExt = ".txt"; 
-            dialog.Filter = "Text documents (.txt)|*.txt"; 
+            dialog.FileName = "Document";
+            dialog.DefaultExt = ".txt";
+            dialog.Filter = "Text documents (.txt)|*.txt";
 
             bool? result = dialog.ShowDialog();
 
@@ -83,7 +83,7 @@ namespace CompilerLab
                 {
                     Input.Text = "";
                 }
-                fs.Close();          
+                fs.Close();
             }
             SaveAsOption.IsEnabled = true;
             SaveButton.IsEnabled = true;
@@ -107,7 +107,7 @@ namespace CompilerLab
                 condition = "Editing";
                 Condition.Content = condition;
             }
-            
+
             Input.Text = "";
 
 
@@ -163,7 +163,7 @@ namespace CompilerLab
                         writer.Close();
                     }
                 }
-                else if (closeFileWindow.IsCanceled) {}
+                else if (closeFileWindow.IsCanceled) { }
                 else
                 {
                     return;
@@ -289,7 +289,8 @@ namespace CompilerLab
                     }
                     Process.GetCurrentProcess().Kill();
                 }
-                else if (closeFileWindow.IsCanceled) {
+                else if (closeFileWindow.IsCanceled)
+                {
                     Process.GetCurrentProcess().Kill();
                 }
                 else
@@ -306,13 +307,13 @@ namespace CompilerLab
                     }
                     e.Cancel = true;
                     return;
-                }         
+                }
             }
             else
             {
                 Process.GetCurrentProcess().Kill();
             }
-            
+
         }
 
         private void Undo(object sender, RoutedEventArgs e)
@@ -361,7 +362,7 @@ namespace CompilerLab
             {
                 Output.FontSize = Convert.ToInt32(OutputFont.SelectedItem.ToString().Replace("System.Windows.Controls.ComboBoxItem: ", ""));
             }
-            
+
         }
         private void InputFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -370,15 +371,15 @@ namespace CompilerLab
                 Input.FontSize = 14;
             }
             else
-            { 
+            {
                 Input.FontSize = Convert.ToInt32(InputFont.SelectedItem.ToString().Replace("System.Windows.Controls.ComboBoxItem: ", ""));
             }
         }
 
         private void SwitchToRussian(object sender, RoutedEventArgs e)
         {
-            string[] rus = {"Файл","Создать","Открыть","Сохранить","Сохранить как","Выход", "Правка","Отменить", "Повторить", 
-                "Вырезать", "Копировать", "Вставить", "Удалить", "Выделить все", 
+            string[] rus = {"Файл","Создать","Открыть","Сохранить","Сохранить как","Выход", "Правка","Отменить", "Повторить",
+                "Вырезать", "Копировать", "Вставить", "Удалить", "Выделить все",
                 "Текст", "Постановка задачи", "Грамматика", "Классификация грамматики",
                 "Метод анализа", "Диагностика и нейтрализация ошибок", "Текстовый пример", "Список литературы", "Исходный код программы", "Справка"
                 , "Вызов справки", "О программе", "Настройки", "Язык", "Пуск"};
@@ -424,7 +425,7 @@ namespace CompilerLab
             AboutProgramButton.ToolTip = "О программе";
             InputFont.ToolTip = "Размер шрифта в окне редактирования";
             OutputFont.ToolTip = "Размер шрифта в окне вывода";
-            
+
             lang = "rus";
             if (condition == "Waiting")
             {
@@ -490,7 +491,7 @@ namespace CompilerLab
             HelpButton.ToolTip = "Help";
             AboutProgramButton.ToolTip = "About program";
             InputFont.ToolTip = "Editor font-size";
-            OutputFont.ToolTip = "Output font-size";     
+            OutputFont.ToolTip = "Output font-size";
             lang = "eng";
             if (condition == "Ожидание")
             {
@@ -553,55 +554,55 @@ namespace CompilerLab
             public string String { get; set; }
         }
 
-        private void TextChangedEventHandler(object sender, TextChangedEventArgs args) 
+        private void TextChangedEventHandler(object sender, TextChangedEventArgs args)
         {
-           
-           /* Output.Items.Clear();
-            int strings_counter = 0;
-            List<string> strings = new List<string>();
-            string word_buffer = "";
-            for (int i = 0; i < Input.Text.Length; i++)
-            {
-                if (Input.Text[i] == '\n')
-                {      
-                    strings_counter++;
-                    CheckCodes(word_buffer, strings_counter, i-1, true);
-                    word_buffer = "";                 
-                    CheckCodes('\n' + "", strings_counter, i, true);           
-                    continue;
-                }
-                if (((((i + 1) < Input.Text.Length)  && Input.Text[i + 1] == '\r') || i == Input.Text.Length - 1) && Input.Text[i] == '\n')
-                {
-                    strings_counter++;
-                    word_buffer += Input.Text[i]; 
-                    if (word_buffer != "")
-                        CheckCodes(word_buffer, strings_counter, i, true);
-                    word_buffer = "";
-                    continue;
-                }
-                if (Input.Text[i] == '\r')
-                    continue;
 
-                if (i == Input.Text.Length - 1)
-                {
-                    strings_counter++;
-                    word_buffer += Input.Text[i];
-                    CheckCodes(word_buffer, strings_counter, i, true);
-                }
+            /* Output.Items.Clear();
+             int strings_counter = 0;
+             List<string> strings = new List<string>();
+             string word_buffer = "";
+             for (int i = 0; i < Input.Text.Length; i++)
+             {
+                 if (Input.Text[i] == '\n')
+                 {      
+                     strings_counter++;
+                     CheckCodes(word_buffer, strings_counter, i-1, true);
+                     word_buffer = "";                 
+                     CheckCodes('\n' + "", strings_counter, i, true);           
+                     continue;
+                 }
+                 if (((((i + 1) < Input.Text.Length)  && Input.Text[i + 1] == '\r') || i == Input.Text.Length - 1) && Input.Text[i] == '\n')
+                 {
+                     strings_counter++;
+                     word_buffer += Input.Text[i]; 
+                     if (word_buffer != "")
+                         CheckCodes(word_buffer, strings_counter, i, true);
+                     word_buffer = "";
+                     continue;
+                 }
+                 if (Input.Text[i] == '\r')
+                     continue;
 
-                if (Input.Text[i] == ' ')
-                {
-                    if (word_buffer != "")
-                        CheckCodes(word_buffer, strings_counter, i-1, false);
-                    CheckCodes(" ", strings_counter, i, false);
-                    word_buffer = "";
-                    continue;
-                }
-                else
-                {         
-                    word_buffer += Input.Text[i];
-                }
-            }*/
+                 if (i == Input.Text.Length - 1)
+                 {
+                     strings_counter++;
+                     word_buffer += Input.Text[i];
+                     CheckCodes(word_buffer, strings_counter, i, true);
+                 }
+
+                 if (Input.Text[i] == ' ')
+                 {
+                     if (word_buffer != "")
+                         CheckCodes(word_buffer, strings_counter, i-1, false);
+                     CheckCodes(" ", strings_counter, i, false);
+                     word_buffer = "";
+                     continue;
+                 }
+                 else
+                 {         
+                     word_buffer += Input.Text[i];
+                 }
+             }*/
         }
 
         private bool def(string s, int n)
@@ -613,7 +614,7 @@ namespace CompilerLab
                 if (word != "" && s[j] == ' ')
                 {
                     code = 19;
-                    Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимый символ", Lexem = word, Symbol = "" + j, String = "" + (n + 1)});
+                    Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимый символ", Lexem = word, Symbol = "" + j, String = "" + (n + 1) });
                     break;
                 }
                 else if (s[j] == '\r')
@@ -630,12 +631,12 @@ namespace CompilerLab
                 }
                 else
                 {
-                    if (!((s[j] >= 'a' && s[j] <= 'z') || (s[j] >= 'A' && s[j] <= 'Z') || (s[j] == '_') || (s[j] == '-') || (s[j] >= '0' && s[j] <= '9' && (j != 0 || s[j-1] != ' '))))
+                    if (!((s[j] >= 'a' && s[j] <= 'z') || (s[j] >= 'A' && s[j] <= 'Z') || (s[j] == '_') || (s[j] == '-') || (s[j] >= '0' && s[j] <= '9' && (j != 0 || s[j - 1] != ' '))))
                         word += s[j];
                     else
                     {
                         code = 19;
-                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимый символ", Lexem = word, Symbol = "" + j, String = "" + (n + 1) });                   
+                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимый символ", Lexem = word, Symbol = "" + j, String = "" + (n + 1) });
                         break;
                     }
                 }
@@ -702,7 +703,7 @@ namespace CompilerLab
         private int string_counter = 0;
         private int char_counter = 0;
         private string[] get_new_char()
-        {   
+        {
             string[] result = new string[3];
             return result;
         }
@@ -771,7 +772,7 @@ namespace CompilerLab
                 }
             }
             int current_string = 1;
-            int current_char = 0;   
+            int current_char = 0;
             string pr_lexem = "";
             bool nmr = false;
             while (current_state != "END")
@@ -841,7 +842,7 @@ namespace CompilerLab
                                     continue;
                                 }
                             }
-                            
+
                             lexem = "";
                             current_char++;
                             continue;
@@ -856,7 +857,7 @@ namespace CompilerLab
                     {
 
                         if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
-                        {         
+                        {
                             if (chars_in_string[current_char] == '=')
                             {
                                 current_state = transitions[current_state][chars_in_string[current_char] + ""];
@@ -965,7 +966,7 @@ namespace CompilerLab
                 if (current_state == "ASSIGNTMENT")
                 {
                     if (chars_in_string.Count > 0 && current_char < chars_in_string.Count)
-                    {                       
+                    {
                         if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
                         {
                             if (chars_in_string[current_char] == '[')
@@ -991,8 +992,8 @@ namespace CompilerLab
                             {
                                 Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: ожидается объявление инициализации списка при помощи [", Lexem = lexem, Symbol = current_char + "", String = "" + current_string });
                                 g = false;
-                                
-                            }    
+
+                            }
                             if (tmp_str[current_char] != '\r' && tmp_str[current_char] != '\n' && current_char + 1 < tmp_str.Length)
                             {
 
@@ -1098,7 +1099,7 @@ namespace CompilerLab
 
                         if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
                         {
-                            
+
                             if (chars_in_string[current_char] == '+' || chars_in_string[current_char] == '-')
                             {
                                 current_state = transitions[current_state][chars_in_string[current_char] + ""];
@@ -1106,7 +1107,7 @@ namespace CompilerLab
                                     current_char++;
                                 continue;
                             }
-                            else if(chars_in_string[current_char] == '"')
+                            else if (chars_in_string[current_char] == '"')
                             {
                                 current_state = transitions[current_state][chars_in_string[current_char] + ""];
                                 if (current_char < chars_in_string.Count)
@@ -1416,7 +1417,7 @@ namespace CompilerLab
                                     else
                                         output.Append(startRange + "; ");
 
-                                    string result = output.ToString();                                   
+                                    string result = output.ToString();
 
                                     if (lexem != pr_lexem)
                                     {
@@ -1684,8 +1685,8 @@ namespace CompilerLab
 
                         if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
                         {
-                           
-                            if(chars_in_string[current_char] == '\"')
+
+                            if (chars_in_string[current_char] == '\"')
                             {
                                 if (current_char + 1 < chars_in_string.Count)
                                 {
@@ -1699,12 +1700,11 @@ namespace CompilerLab
                                         current_char++;
                                         current_state = transitions[current_state]["\","];
                                     }
-                                    if (chars_in_string[current_char + 1] == '\"')
+                                    if (chars_in_string[current_char] == '\"')
                                     {
-                                        int j = current_char + 2;
+                                        int j = current_char + 1;
                                         while (j < chars_in_string.Count)
                                         {
-                                            
                                             if (chars_in_string[j] == ']')
                                                 break;
                                             if (chars_in_string[j] == ',')
@@ -1718,21 +1718,24 @@ namespace CompilerLab
                                             else
                                             {
                                                 string tmp_str = tmp[current_string - 1];
-                                                Output.Items.Add(new OutputItem { Code = "" + Convert.ToString(19), Type = "Ошибка: отсутствует разделитель", Lexem = tmp_str, Symbol = j + "", String = "" + current_string });                                              
+                                                Output.Items.Add(new OutputItem { Code = "" + Convert.ToString(19), Type = "Ошибка: отсутствует разделитель", Lexem = tmp_str, Symbol = j + "", String = "" + current_string });
                                             }
-                                            j++;
-                                        }                                       
+                                            if (j + 1 < chars_in_string.Count)
+                                                j++;
+                                            else
+                                                break;
+                                        }
                                     }
-                                }                                  
+                                }
                                 current_char++;
                                 continue;
                             }
-                            else if(chars_in_string[current_char] == ' ' && current_word == "")
+                            else if (chars_in_string[current_char] == ' ' && current_word == "")
                             {
                                 current_char++;
                                 continue;
                             }
-                            
+
                             else
                                 current_char++; ;
 
@@ -1806,13 +1809,12 @@ namespace CompilerLab
 
                                     string result = output.ToString();
 
-                                    if (lexem != pr_lexem)
-                                    {
+                                    
                                         string fin_lexem = lexem.Replace(',', ' ');
                                         Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символы при объявлении числа строки/символа", Lexem = fin_lexem, Symbol = result + "", String = "" + current_string });
                                         if (lexem.Last() != ',')
                                             Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: отсутствует разделитель", Lexem = fin_lexem, Symbol = current_char + ";", String = "" + current_string });
-                                    }
+                                    
 
                                     pr_lexem = "";
                                     for (int x = 0; x < lexem.Length; x++)
@@ -1834,15 +1836,15 @@ namespace CompilerLab
             }
         }
 
-           /* 1) DEF->letter LISTNAME
-            2) LISTNAME->letter LISTNAME | = ASSIGNTMENT
-            3) ASSIGNTMENT-> [ITEMS
-            4) ITEMS-> [+| -] NUMBER | " STRING
-            5) NUMBER->digit NUMBERREM
-            6) NUMBERREM-> , ITEMS | ] | digit NUMBERREM | .DECIMAL
-            7) DECIMAL->digit DECIMALREM
-            8) DECIMALREM-> , ITEMS | ] | digit DECIMALREM
-            9) STRING-> "] | ", ITEMS | symbol STRING*/
+        /* 1) DEF->letter LISTNAME
+         2) LISTNAME->letter LISTNAME | = ASSIGNTMENT
+         3) ASSIGNTMENT-> [ITEMS
+         4) ITEMS-> [+| -] NUMBER | " STRING
+         5) NUMBER->digit NUMBERREM
+         6) NUMBERREM-> , ITEMS | ] | digit NUMBERREM | .DECIMAL
+         7) DECIMAL->digit DECIMALREM
+         8) DECIMALREM-> , ITEMS | ] | digit DECIMALREM
+         9) STRING-> "] | ", ITEMS | symbol STRING*/
 
         private bool IdCheck(string str)
         {
@@ -1854,7 +1856,7 @@ namespace CompilerLab
                 {
                     isValidated = false;
                 }
-            }       
+            }
             return isValidated;
         }
         private void Lexer(string word)
@@ -1883,7 +1885,7 @@ namespace CompilerLab
             {
                 code = 4;
                 type = "Ключевое слово";
-            }  
+            }
             else if (word == "true")
             {
                 code = 6;
@@ -1950,6 +1952,6 @@ namespace CompilerLab
                 type = "Ошибка: недопустимые символы";
             }
             // Output.Items.Add(new OutputItem { Code = "" + code, Type = type, Lexem = word, Symbol = symbol, String = "" + strings_count });
-        }      
+        }
     }
 }
