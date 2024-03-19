@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CompilerLab"       
         mc:Ignorable="d"
-        Title="Компилятор" Height="500" Width="800" MinWidth="480" MinHeight="370" WindowStartupLocation="CenterScreen" Closing="MainWindow_Closing">
+        Title="Компилятор" Height="500" Width="800" MinWidth="480" MinHeight="370" WindowStartupLocation="CenterScreen" Closing="MainWindow_Closing"
+        >
     <Grid>
 
         <Grid.RowDefinitions>
@@ -71,7 +72,7 @@
                     <MenuItem Header="English" Click="SwitchToEnglish"></MenuItem>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="Пуск" Name="RunOption" IsEnabled="False" Click="Run"></MenuItem>
+            <MenuItem Header="Пуск" Name="RunOption" IsEnabled="False"></MenuItem>
         </Menu>
 
         <Button Grid.Column="0" Grid.Row="1" Margin="5,5,5,5" Cursor="Hand" Background="Transparent" BorderThickness="0" ToolTip="Создать файл" Click="CreateFileDialog" Name="CreateFileButton">
@@ -98,7 +99,7 @@
         <Button Grid.Column="8" Grid.Row="1" Margin="5,5,5,5" Cursor="Hand" Background="Transparent" BorderThickness="0" ToolTip="Вставить" Name="PasteButton" IsEnabled="False" Click="Paste">
             <Image Source="Assets/paste-icon.png" MaxHeight="26" MaxWidth="26"></Image>
         </Button>
-        <Button Grid.Column="9" Grid.Row="1" Margin="5,5,5,5" Cursor="Hand" Background="Transparent" BorderThickness="0" ToolTip="Пуск" IsEnabled="False" Name ="RunButton" Click="Run">
+        <Button Grid.Column="9" Grid.Row="1" Margin="5,5,5,5" Cursor="Hand" Background="Transparent" BorderThickness="0" ToolTip="Пуск" IsEnabled="False" Name ="RunButton">
             <Image Source="Assets/run-icon.png"  MaxHeight="26" MaxWidth="26"></Image>
         </Button>
         <Button Grid.Column="10" Grid.Row="1" Margin="5,5,5,5" Cursor="Hand" Background="Transparent" BorderThickness="0" ToolTip="Справка" Name="HelpButton" Click="CallHelp">
@@ -120,7 +121,8 @@
             Grid.Row="2"
             Grid.ColumnSpan="15"
             IsEnabled="False"
-            ShowLineNumbers="True"                  
+            ShowLineNumbers="True"   
+            TextChanged="Input_TextChanged"
             />
 
 
@@ -172,6 +174,7 @@
         </ComboBox>
 
         <Label Name="Condition" Grid.Row="1" Grid.Column="16" Content="Ожидание" HorizontalAlignment="Center" VerticalAlignment="Center"></Label>
-        
+        <Label Name="Errors" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Content="Ошибок не обнаружено" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Hidden"></Label>
+
     </Grid>
 </Window>
