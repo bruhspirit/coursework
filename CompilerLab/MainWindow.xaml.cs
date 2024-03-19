@@ -1695,7 +1695,7 @@ namespace CompilerLab
                                         current_char++;
                                         current_state = transitions[current_state]["\","];
                                     }
-                                    if (chars_in_string[current_char + 1] == ']')
+                                    if (chars_in_string[current_char] == ']')
                                     {
                                         current_char++;
                                         current_state = transitions[current_state]["\","];
@@ -1835,6 +1835,9 @@ namespace CompilerLab
                 }
                 
             }
+            string tmp_str2 = tmp[current_string - 1];
+            if (tmp_str2.Contains('[') && !tmp_str2.Contains(']'))
+                Output.Items.Add(new OutputItem { Code = "" + 19, Type = "Ошибка: в конце инициализации списка ожидается ]", Lexem = tmp_str2, Symbol = Convert.ToString(tmp_str2.Length - 1), String = "" + current_string });
             if (Output.Items.Count == 0)
                 Errors.Visibility = Visibility.Visible;
             if (Output.Items.Count > 0)
