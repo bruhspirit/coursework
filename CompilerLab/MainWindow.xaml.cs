@@ -1833,7 +1833,12 @@ namespace CompilerLab
                     else
                         break;
                 }
+                
             }
+            if (Output.Items.Count == 0)
+                Errors.Visibility = Visibility.Visible;
+            if (Output.Items.Count > 0)
+                Errors.Visibility = Visibility.Hidden;
         }
 
         /* 1) DEF->letter LISTNAME
