@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
+    <h2>Грамматика:</h2>
+    <p>1) DEF -> letter LISTNAME</p>
+    <p>2) LISTNAME -> letter LISTNAME | = ASSIGNTMENT</p>
+    <p>3) ASSIGNTMENT -> [ ITEMS</p>
+    <p>4) ITEMS -> [+|-] NUMBER | " STRING</p>
+    <p>5) NUMBER -> digit NUMBERREM</p>
+    <p>6) NUMBERREM -> , ITEMS | ] | digit NUMBERREM | . DECIMAL</p>
+    <p>7) DECIMAL -> digit DECIMALREM</p>
+    <p>8) DECIMALREM -> , ITEMS | ] | digit DECIMALREM</p>
+    <p>9) STRING -> "] | ", ITEMS | symbol STRING</p>
+    <h2>Граф конечного автомата:</h2>
+    <img src="https://github.com/bruhspirit/coursework/assets/160126744/f1340703-38fc-416c-a642-db8686984346">
     <h2>Лексический анализатор (сканер):</h2>
     <img src="https://github.com/bruhspirit/coursework/assets/160126744/c24d0b59-ca46-4141-8299-217bc3ec960c" alt="">
     <h2>Цель:</h2>
