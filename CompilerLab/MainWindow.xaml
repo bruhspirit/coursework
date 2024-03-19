@@ -53,14 +53,14 @@
                 <MenuItem Header="Выделить все" Click="SelectAll" Name="SelectAllOption"></MenuItem>
             </MenuItem>
             <MenuItem Header="Текст" Name="TextOption">
-                <MenuItem Header="Постановка задачи" Name="Formulation"></MenuItem>
-                <MenuItem Header="Грамматика" Name="Grammatic"></MenuItem>
-                <MenuItem Header="Классификация грамматики" Name="GrammaticClass"></MenuItem>
-                <MenuItem Header="Метод анализа" Name="AnalysMethod"></MenuItem>
-                <MenuItem Header="Диагностика и нейтрализация ошибок" Name="Troubleshooter"></MenuItem>
-                <MenuItem Header="Текстовый пример" Name="Example"></MenuItem>
-                <MenuItem Header="Список литературы" Name="Literature"></MenuItem>
-                <MenuItem Header="Исходный код программы" Name="SourceCode"></MenuItem>
+                <MenuItem Header="Постановка задачи" Name="Formulation" Click="Formulation_Click"></MenuItem>
+                <MenuItem Header="Грамматика" Name="Grammatic" Click="Grammatic_Click"></MenuItem>
+                <MenuItem Header="Классификация грамматики" Name="GrammaticClass" Click="GrammaticClass_Click"></MenuItem>
+                <MenuItem Header="Метод анализа" Name="AnalysMethod" Click="AnalysMethod_Click"></MenuItem>
+                <MenuItem Header="Диагностика и нейтрализация ошибок" Name="Troubleshooter" Click="Troubleshooter_Click"></MenuItem>
+                <MenuItem Header="Текстовый пример" Name="Example" Click="Example_Click"></MenuItem>
+                <MenuItem Header="Список литературы" Name="Literature" Click="Literature_Click"></MenuItem>
+                <MenuItem Header="Исходный код программы" Name="SourceCode" Click="SourceCode_Click"></MenuItem>
             </MenuItem>
             <MenuItem Header="Справка" Name="Help">
                 <MenuItem Header="Вызов справки" Name="HelpOption" Click="CallHelp"></MenuItem>
