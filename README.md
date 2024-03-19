@@ -17,8 +17,14 @@
     <p>9) STRING -> "] | ", ITEMS | symbol STRING</p>
     <h2>Граф конечного автомата:</h2>
     <img src="https://github.com/bruhspirit/coursework/assets/160126744/f1340703-38fc-416c-a642-db8686984346">
+    <h2>Примеры:</h2>
+    <img src="https://github.com/bruhspirit/coursework/assets/160126744/c657d1d6-c27e-4fe3-bbb6-819aec60729b">
+    <img src="https://github.com/bruhspirit/coursework/assets/160126744/1c473336-a7c7-407c-b010-237524b50d26">
+    <img src="https://github.com/bruhspirit/coursework/assets/160126744/4042aef5-c632-452f-89f7-1c3a6609a008">
+    <img src="https://github.com/bruhspirit/coursework/assets/160126744/5a8e18a6-008a-4a54-b6dc-cff7cbfd3fd7">
+     <img src="https://github.com/bruhspirit/coursework/assets/160126744/1c8d341b-bce5-44bd-bf1a-20ecffe81c32">
     <h2>Лексический анализатор (сканер):</h2>
-    <img src="https://github.com/bruhspirit/coursework/assets/160126744/c24d0b59-ca46-4141-8299-217bc3ec960c" alt="">
+    <img src="https://github.com/bruhspirit/coursework/assets/160126744/c24d0b59-ca46-4141-8299-217bc3ec960c" alt=""> 
     <h2>Цель:</h2>
     <p>Изучить назначение лексического анализатора. Спроектировать алгоритм и выполнить программную реализацию сканера.</p>
     <p>В соответсвии с вариантом задания необходимо:</p>
