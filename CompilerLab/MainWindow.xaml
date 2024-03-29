@@ -72,7 +72,7 @@
                     <MenuItem Header="English" Click="SwitchToEnglish"></MenuItem>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="Пуск" Name="RunOption" IsEnabled="False"></MenuItem>
+            <MenuItem Header="Пуск" Name="RunOption" IsEnabled="False" Click="Run"></MenuItem>
         </Menu>
 
         <Button Grid.Column="0" Grid.Row="1" Margin="5,5,5,5" Cursor="Hand" Background="Transparent" BorderThickness="0" ToolTip="Создать файл" Click="CreateFileDialog" Name="CreateFileButton">
@@ -99,7 +99,7 @@
         <Button Grid.Column="8" Grid.Row="1" Margin="5,5,5,5" Cursor="Hand" Background="Transparent" BorderThickness="0" ToolTip="Вставить" Name="PasteButton" IsEnabled="False" Click="Paste">
             <Image Source="Assets/paste-icon.png" MaxHeight="26" MaxWidth="26"></Image>
         </Button>
-        <Button Grid.Column="9" Grid.Row="1" Margin="5,5,5,5" Cursor="Hand" Background="Transparent" BorderThickness="0" ToolTip="Пуск" IsEnabled="False" Name ="RunButton">
+        <Button Grid.Column="9" Grid.Row="1" Margin="5,5,5,5" Cursor="Hand" Background="Transparent" BorderThickness="0" ToolTip="Пуск" IsEnabled="False" Name ="RunButton" Click="Run">
             <Image Source="Assets/run-icon.png"  MaxHeight="26" MaxWidth="26"></Image>
         </Button>
         <Button Grid.Column="10" Grid.Row="1" Margin="5,5,5,5" Cursor="Hand" Background="Transparent" BorderThickness="0" ToolTip="Справка" Name="HelpButton" Click="CallHelp">
@@ -122,7 +122,6 @@
             Grid.ColumnSpan="15"
             IsEnabled="False"
             ShowLineNumbers="True"   
-            TextChanged="Input_TextChanged"
             />
 
 
