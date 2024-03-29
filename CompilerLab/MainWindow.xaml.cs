@@ -8,6 +8,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using static System.Net.Mime.MediaTypeNames;
+using static System.Windows.Forms.AxHost;
 
 namespace CompilerLab
 {
@@ -673,9 +675,7 @@ namespace CompilerLab
                 string s = (char)('A' + i) + "";
                 tmp[stm].Add(s, next_stm);
             }
-            string str = Convert.ToString('-');
-            tmp[stm].Add(str, next_stm);
-            str = Convert.ToString('_');
+            string str = Convert.ToString('_');
             tmp[stm].Add(str, next_stm);
             return tmp;
         }
@@ -735,9 +735,10 @@ namespace CompilerLab
             transitions = FillDictionaryWithNumbers(transitions, "LISTNAME", "LISTNAME");
             transitions["LISTNAME"].Add("=", "ASSIGNTMENT");
             transitions["ASSIGNTMENT"].Add("[", "ITEMS");
+            transitions = FillDictionaryWithNumbers(transitions, "ITEMS", "NUMBERREM");
             transitions["ITEMS"].Add("+", "NUMBER");
             transitions["ITEMS"].Add("-", "NUMBER");
-            transitions["ITEMS"].Add("", "NUMBER");
+            transitions["ITEMS"].Add("]", "END");
             transitions["ITEMS"].Add("\"", "STRING");
             transitions = FillDictionaryWithNumbers(transitions, "NUMBER", "NUMBERREM");
             transitions["NUMBERREM"].Add(",", "ITEMS");
@@ -753,1214 +754,1302 @@ namespace CompilerLab
             transitions["STRING"].Add("\",", "ITEMS");
         }
 
-        private string current_word = "";
-        private void Input_TextChanged(object sender, EventArgs e)
+        /*1) DEF->letter LISTNAME
+        2) LISTNAME->letter LISTNAME | = ASSIGNTMENT
+        3) ASSIGNTMENT-> [ITEMS
+        4) ITEMS-> [+| -] NUMBER | " STRING | ]
+        5) NUMBER->digit NUMBERREM
+        6) NUMBERREM-> , ITEMS | ] | digit NUMBERREM | .DECIMAL
+        7) DECIMAL->digit DECIMALREM
+        8) DECIMALREM-> , ITEMS | ] | digit DECIMALREM
+        9) STRING-> "] | ", ITEMS | symbol STRING*/
+
+        private int Lexer(string word)
         {
-            string current_state = "DEF";
-            bool g = true;
-            Output.Items.Clear();
-            string[] tmp = Input.Text.Split('\n');
-            var splitted_by_char_strings = new List<List<char>>();
-            string lexem = "";
-            for (int i = 0; i < tmp.Length; i++)
+            int code = 0;
+            string type = "";
+
+            if (word == "int")
             {
-                splitted_by_char_strings.Add(new List<char>());
-                string s = tmp[i];
-                foreach (char c in s)
-                {
-                    splitted_by_char_strings[i].Add(c);
-                }
+                code = 1;
+                type = "Ключевое слово";
+                return code;
             }
-            int current_string = 1;
-            int current_char = 0;
-            string pr_lexem = "";
-            bool nmr = false;
-            while (current_state != "END")
+            else if (word == "bool")
             {
-                List<char> chars_in_string = new List<char>();
-                chars_in_string = splitted_by_char_strings[current_string - 1];
-
-                if (current_state == "DEF")
-                {
-                    if (chars_in_string.Count > 0 && current_char < chars_in_string.Count)
-                    {
-                        if (chars_in_string[current_char] == ' ')
-                        {
-                            current_char++;
-                            continue;
-                        }
-                        if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
-                        {
-                            current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                            if (current_char < chars_in_string.Count)
-                                current_char++;
-                        }
-                        else
-                        {
-                            //ERROR
-                            int code = 19;
-                            string tmp_str = tmp[current_string - 1];
-                            int items_count = Output.Items.Count;
-                            Output.Items.Clear();
-                            lexem = "";
-                            string symbol = "";
-                            int start = 0;
-
-                            for (int i = 0; i <= current_char; i++)
-                            {
-
-                                if (tmp_str[i] == ' ' && lexem == "")
-                                {
-                                    start++;
-                                    continue;
-                                }
-
-                                if (tmp_str[i] != '\r' && tmp_str[i] != '\n')
-                                    lexem += tmp_str[i];
-                            }
-                            if (lexem != "")
-                            {
-                                if (tmp_str[current_char] != '\r' && tmp_str[current_char] != '\n')
-                                {
-                                    if (lexem.Length > 1)
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символы при начале объявления идентификатора", Lexem = lexem + "", Symbol = Convert.ToString(start) + "-" + Convert.ToString(current_char), String = "" + current_string });
-                                    else
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символ при начале объявления идентификатора", Lexem = lexem + "", Symbol = current_char + "", String = "" + current_string });
-                                }
-                                else
-                                {
-                                    if (lexem.Length > 1)
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символы при начале объявления идентификатора", Lexem = lexem + "", Symbol = Convert.ToString(start) + "-" + Convert.ToString(current_char - 1), String = "" + current_string });
-                                    else
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символ при начале объявления идентификатора", Lexem = lexem + "", Symbol = Convert.ToString(current_char) + "", String = "" + current_string });
-                                }
-                                if (tmp_str[current_char] == '=')
-                                {
-                                    Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: перед знаком равенства ожидался идентификатор", Lexem = lexem + "", Symbol = Convert.ToString(current_char), String = "" + current_string });
-                                    current_state = "ASSIGNTMENT";
-                                    lexem = "";
-                                    continue;
-                                }
-                            }
-
-                            lexem = "";
-                            current_char++;
-                            continue;
-                        }
-                    }
-                    else
-                        break;
-                }
-                if (current_state == "LISTNAME")
-                {
-                    if (chars_in_string.Count > 0 && current_char < chars_in_string.Count)
-                    {
-
-                        if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
-                        {
-                            if (chars_in_string[current_char] == '=')
-                            {
-                                current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                                if (current_char < chars_in_string.Count)
-                                    current_char++;
-                                pr_lexem = "";
-                                continue;
-
-                            }
-                            else
-                            {
-                                current_char++;
-                            }
-                        }
-                        else
-                        {
-                            int code = 19;
-                            string tmp_str = tmp[current_string - 1];
-                            string sym = "";
-                            lexem = "";
-
-
-                            if (tmp_str[current_char] != '\r' && tmp_str[current_char] != '\n')
-                            {
-
-                                for (int i = 0; i < tmp_str.Length; i++)
-                                {
-                                    if (tmp_str[i] == '=')
-                                    {
-                                        lexem += tmp_str[i];
-                                        break;
-                                    }
-                                    if (lexem == "" && tmp_str[i] == ' ')
-                                        continue;
-                                    if (lexem != "" && tmp_str[i] == ' ')
-                                        continue;
-                                    if (transitions[current_state].ContainsKey(tmp_str[i] + "") && tmp_str[i] != ' ' && tmp_str[i] != '\r' && tmp_str[i] != '\n')
-                                    {
-                                        lexem += tmp_str[i];
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        if (tmp_str[i] != '\r' && tmp_str[i] != '\n')
-                                        {
-                                            sym += Convert.ToString(i) + ';';
-                                        }
-                                    }
-                                    if (tmp_str[i] != '\r' && tmp_str[i] != '\n')
-                                    {
-                                        lexem += tmp_str[i];
-                                    }
-
-                                }
-
-                                StringBuilder output = new StringBuilder();
-
-                                string[] numbers = sym.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-                                if (numbers.Length > 0)
-                                {
-                                    int startRange = Convert.ToInt32(numbers[0]);
-                                    int endRange = startRange;
-
-                                    for (int i = 1; i < numbers.Length; i++)
-                                    {
-                                        int currentNumber = Convert.ToInt32(numbers[i]);
-
-                                        if (currentNumber - 1 == endRange)
-                                        {
-                                            endRange = currentNumber;
-                                        }
-                                        else
-                                        {
-                                            if (startRange != endRange)
-                                                output.Append(startRange + "-" + endRange + "; ");
-                                            else
-                                                output.Append(startRange + "; ");
-
-                                            startRange = currentNumber;
-                                            endRange = currentNumber;
-                                        }
-                                    }
-
-                                    if (startRange != endRange)
-                                        output.Append(startRange + "-" + endRange + "; ");
-                                    else
-                                        output.Append(startRange + "; ");
-
-                                    string result = output.ToString();
-
-
-                                    if (lexem != pr_lexem)
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символы в идентификаторе", Lexem = lexem, Symbol = result + "", String = "" + current_string });
-                                    pr_lexem = lexem;
-
-                                }
-
-                            }
-                            current_char++;
-                        }
-                    }
-                    else
-                        break;
-                }
-                if (current_state == "ASSIGNTMENT")
-                {
-                    if (chars_in_string.Count > 0 && current_char < chars_in_string.Count)
-                    {
-                        if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
-                        {
-                            if (chars_in_string[current_char] == '[')
-                            {
-                                current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                                if (current_char < chars_in_string.Count)
-                                    current_char++;
-                                continue;
-
-                            }
-                            else
-                            {
-                                current_char++;
-                            }
-                        }
-                        else
-                        {
-                            int code = 19;
-                            string tmp_str = tmp[current_string - 1];
-                            string sym = "";
-                            lexem = "";
-                            if (!tmp_str.Contains('[') && g)
-                            {
-                                Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: ожидается объявление инициализации списка при помощи [", Lexem = lexem, Symbol = current_char + "", String = "" + current_string });
-                                g = false;
-
-                            }
-                            if (tmp_str[current_char] != '\r' && tmp_str[current_char] != '\n' && current_char + 1 < tmp_str.Length)
-                            {
-
-                                for (int i = current_char + 1; i < tmp_str.Length; i++)
-                                {
-                                    if (tmp_str[i] != '[')
-                                        break;
-                                    if (lexem == "" && tmp_str[i] == ' ')
-                                        continue;
-                                    if (transitions[current_state].ContainsKey(tmp_str[i] + "") && tmp_str[i] != ' ' && tmp_str[i] != '\r' && tmp_str[i] != '\n')
-                                    {
-                                        lexem += tmp_str[i];
-                                        continue;
-                                    }
-                                    else
-                                    {
-                                        if (tmp_str[i] != '\r' && tmp_str[i] != '\n')
-                                        {
-                                            sym += Convert.ToString(i) + ';';
-                                        }
-                                    }
-                                    if (tmp_str[i] != '\r' && tmp_str[i] != '\n')
-                                    {
-                                        lexem += tmp_str[i];
-                                    }
-
-                                }
-
-                                StringBuilder output = new StringBuilder();
-
-                                string[] numbers = sym.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-                                if (numbers.Length > 0)
-                                {
-                                    int startRange = Convert.ToInt32(numbers[0]);
-                                    int endRange = startRange;
-
-                                    for (int i = 1; i < numbers.Length; i++)
-                                    {
-                                        int currentNumber = Convert.ToInt32(numbers[i]);
-
-                                        if (currentNumber - 1 == endRange)
-                                        {
-                                            endRange = currentNumber;
-                                        }
-                                        else
-                                        {
-                                            if (startRange != endRange)
-                                                output.Append(startRange + "-" + endRange + "; ");
-                                            else
-                                                output.Append(startRange + "; ");
-
-                                            startRange = currentNumber;
-                                            endRange = currentNumber;
-                                        }
-                                    }
-
-                                    if (startRange != endRange)
-                                        output.Append(startRange + "-" + endRange + "; ");
-                                    else
-                                        output.Append(startRange + "; ");
-
-                                    string result = output.ToString();
-
-
-                                    if (lexem != pr_lexem)
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символы при инициализации списка", Lexem = lexem, Symbol = result + "", String = "" + current_string });
-                                    pr_lexem = lexem;
-
-                                }
-                            }
-                            current_char++;
-                        }
-                    }
-                    else
-                        break;
-                }
-                if (current_state == "ITEMS")
-                {
-
-                    lexem = "";
-
-                    if (chars_in_string.Count > 0 && current_char < chars_in_string.Count)
-                    {
-                        int d;
-                        if (Int32.TryParse(chars_in_string[current_char] + "", out d))
-                        {
-                            current_state = "NUMBERREM";
-                            current_char++;
-                            continue;
-                        }
-                        if (chars_in_string[current_char] == ',')
-                        {
-                            current_char++;
-                            //lexem = "";
-                            continue;
-                        }
-                        if (chars_in_string[current_char] == ' ' && current_word == "")
-                        {
-                            current_char++;
-                            continue;
-                        }
-
-                        if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
-                        {
-
-                            if (chars_in_string[current_char] == '+' || chars_in_string[current_char] == '-')
-                            {
-                                current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                                if (current_char < chars_in_string.Count)
-                                    current_char++;
-                                continue;
-                            }
-                            else if (chars_in_string[current_char] == '"')
-                            {
-                                current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                                if (current_char < chars_in_string.Count)
-                                    current_char++;
-                                continue;
-                            }
-                        }
-                        else
-                        {
-                            int code = 19;
-                            string tmp_str = tmp[current_string - 1];
-                            string sym = "";
-
-                            if (tmp_str[current_char] != '\r' && tmp_str[current_char] != '\n')
-                            {
-                                bool space = false;
-                                for (int i = current_char; i < tmp_str.Length; i++)
-                                {
-                                    if (lexem == "" && tmp_str[i] == ' ')
-                                        continue;
-                                    if (tmp_str[i] == ',')
-                                    {
-                                        lexem += tmp_str[i];
-                                        break;
-                                    }
-                                    if (tmp_str[i] == ' ')
-                                    {
-                                        space = true;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        lexem += tmp_str[i];
-                                        sym += Convert.ToString(i) + ';';
-                                        continue;
-                                    }
-                                }
-
-                                StringBuilder output = new StringBuilder();
-
-                                string[] numbers = sym.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-                                if (numbers.Length > 0)
-                                {
-                                    int startRange = Convert.ToInt32(numbers[0]);
-                                    int endRange = startRange;
-
-                                    for (int i = 1; i < numbers.Length; i++)
-                                    {
-                                        int currentNumber = Convert.ToInt32(numbers[i]);
-
-                                        if (currentNumber - 1 == endRange)
-                                        {
-                                            endRange = currentNumber;
-                                        }
-                                        else
-                                        {
-                                            if (startRange != endRange)
-                                                output.Append(startRange + "-" + endRange + "; ");
-                                            else
-                                                output.Append(startRange + "; ");
-
-                                            startRange = currentNumber;
-                                            endRange = currentNumber;
-                                        }
-                                    }
-
-                                    if (startRange != endRange)
-                                        output.Append(startRange + "-" + endRange + "; ");
-                                    else
-                                        output.Append(startRange + "; ");
-
-                                    string result = output.ToString();
-
-                                    if (lexem != pr_lexem)
-                                    {
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символы при объявлении элемента списка", Lexem = lexem, Symbol = result + "", String = "" + current_string });
-                                        if (lexem.Last() != ',')
-                                            Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: отсутствует разделитель", Lexem = lexem, Symbol = current_char + ";", String = "" + current_string });
-                                    }
-
-                                    pr_lexem = "";
-                                    for (int x = 0; x < lexem.Length; x++)
-                                    {
-
-                                        if (x == 0)
-                                            continue;
-                                        else
-                                            pr_lexem += lexem[x];
-                                    }
-                                }
-                            }
-                            current_char++;
-                        }
-                    }
-                    else
-                        break;
-                }
-                if (current_state == "NUMBER")
-                {
-                    lexem = "";
-
-                    if (chars_in_string.Count > 0 && current_char < chars_in_string.Count)
-                    {
-                        int d;
-
-                        if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
-                        {
-                            current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                            if (current_char < chars_in_string.Count)
-                                current_char++;
-                            continue;
-                        }
-                        else
-                        {
-                            int code = 19;
-                            string tmp_str = tmp[current_string - 1];
-                            string sym = "";
-
-                            if (tmp_str[current_char] != '\r' && tmp_str[current_char] != '\n')
-                            {
-                                bool space = false;
-                                for (int i = current_char; i < tmp_str.Length; i++)
-                                {
-                                    if (lexem == "" && tmp_str[i] == ' ')
-                                        continue;
-                                    if (tmp_str[i] == '\n' || tmp_str[i] == '\r')
-                                        continue;
-                                    if (tmp_str[i] == ',')
-                                    {
-                                        lexem += tmp_str[i];
-                                        break;
-                                    }
-                                    if (tmp_str[i] == ' ')
-                                    {
-                                        space = true;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        lexem += tmp_str[i];
-                                        sym += Convert.ToString(i) + ';';
-                                        continue;
-                                    }
-                                }
-
-                                StringBuilder output = new StringBuilder();
-
-                                string[] numbers = sym.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-                                if (numbers.Length > 0)
-                                {
-                                    int startRange = Convert.ToInt32(numbers[0]);
-                                    int endRange = startRange;
-
-                                    for (int i = 1; i < numbers.Length; i++)
-                                    {
-                                        int currentNumber = Convert.ToInt32(numbers[i]);
-
-                                        if (currentNumber - 1 == endRange)
-                                        {
-                                            endRange = currentNumber;
-                                        }
-                                        else
-                                        {
-                                            if (startRange != endRange)
-                                                output.Append(startRange + "-" + endRange + "; ");
-                                            else
-                                                output.Append(startRange + "; ");
-
-                                            startRange = currentNumber;
-                                            endRange = currentNumber;
-                                        }
-                                    }
-
-                                    if (startRange != endRange)
-                                        output.Append(startRange + "-" + endRange + "; ");
-                                    else
-                                        output.Append(startRange + "; ");
-
-                                    string result = output.ToString();
-
-                                    if (lexem != pr_lexem)
-                                    {
-                                        string fin_lexem = lexem.Replace(',', ' ');
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символы при объявлении целого числа", Lexem = fin_lexem, Symbol = result + "", String = "" + current_string });
-                                        if (lexem.Last() != ',')
-                                            Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: отсутствует разделитель", Lexem = fin_lexem, Symbol = current_char + ";", String = "" + current_string });
-                                    }
-
-                                    pr_lexem = "";
-                                    for (int x = 0; x < lexem.Length; x++)
-                                    {
-
-                                        if (x == 0)
-                                            continue;
-                                        else
-                                            pr_lexem += lexem[x];
-                                    }
-                                }
-                            }
-                            current_char++;
-                        }
-                    }
-                    else
-                        break;
-                }
-                if (current_state == "NUMBERREM")
-                {
-                    lexem = "";
-
-                    if (chars_in_string.Count > 0 && current_char < chars_in_string.Count)
-                    {
-                        int d;
-
-                        if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
-                        {
-                            if (chars_in_string[current_char] == ',')
-                            {
-                                current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                                if (current_char < chars_in_string.Count)
-                                    current_char++;
-                                continue;
-                            }
-                            else if (chars_in_string[current_char] == ']')
-                            {
-                                current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                                if (current_char < chars_in_string.Count)
-                                    current_char++;
-                                continue;
-                            }
-                            else if (chars_in_string[current_char] == '.')
-                            {
-                                current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                                if (current_char < chars_in_string.Count)
-                                    current_char++;
-                                continue;
-                            }
-                            else
-                                current_char++; ;
-
-                        }
-                        else
-                        {
-                            int code = 19;
-                            string tmp_str = tmp[current_string - 1];
-                            string sym = "";
-
-                            if (tmp_str[current_char] != '\r' && tmp_str[current_char] != '\n')
-                            {
-                                bool space = false;
-                                for (int i = current_char; i < tmp_str.Length; i++)
-                                {
-                                    if (lexem == "" && tmp_str[i] == ' ')
-                                        continue;
-                                    if (tmp_str[i] == '\n' || tmp_str[i] == '\r')
-                                        continue;
-                                    if (tmp_str[i] == ',')
-                                    {
-                                        lexem += tmp_str[i];
-                                        break;
-                                    }
-                                    if (tmp_str[i] == ' ')
-                                    {
-                                        space = true;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        lexem += tmp_str[i];
-                                        sym += Convert.ToString(i) + ';';
-                                        continue;
-                                    }
-                                }
-
-                                StringBuilder output = new StringBuilder();
-
-                                string[] numbers = sym.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-                                if (numbers.Length > 0)
-                                {
-                                    int startRange = Convert.ToInt32(numbers[0]);
-                                    int endRange = startRange;
-
-                                    for (int i = 1; i < numbers.Length; i++)
-                                    {
-                                        int currentNumber = Convert.ToInt32(numbers[i]);
-
-                                        if (currentNumber - 1 == endRange)
-                                        {
-                                            endRange = currentNumber;
-                                        }
-                                        else
-                                        {
-                                            if (startRange != endRange)
-                                                output.Append(startRange + "-" + endRange + "; ");
-                                            else
-                                                output.Append(startRange + "; ");
-
-                                            startRange = currentNumber;
-                                            endRange = currentNumber;
-                                        }
-                                    }
-
-                                    if (startRange != endRange)
-                                        output.Append(startRange + "-" + endRange + "; ");
-                                    else
-                                        output.Append(startRange + "; ");
-
-                                    string result = output.ToString();
-
-                                    if (lexem != pr_lexem)
-                                    {
-                                        string fin_lexem = lexem.Replace(',', ' ');
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символы при объявлении целого числа", Lexem = fin_lexem, Symbol = result + "", String = "" + current_string });
-                                        if (lexem.Last() != ',')
-                                            Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: отсутствует разделитель", Lexem = fin_lexem, Symbol = current_char + ";", String = "" + current_string });
-                                    }
-
-                                    pr_lexem = "";
-                                    for (int x = 0; x < lexem.Length; x++)
-                                    {
-
-                                        if (x == 0)
-                                            continue;
-                                        else
-                                            pr_lexem += lexem[x];
-                                    }
-                                }
-                            }
-                            current_char++;
-                        }
-                    }
-                    else
-                        break;
-                }
-                if (current_state == "DECIMAL")
-                {
-                    lexem = "";
-
-                    if (chars_in_string.Count > 0 && current_char < chars_in_string.Count)
-                    {
-                        int d;
-
-                        if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
-                        {
-                            current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                            if (current_char < chars_in_string.Count)
-                                current_char++;
-                            continue;
-                        }
-                        else
-                        {
-                            int code = 19;
-                            string tmp_str = tmp[current_string - 1];
-                            string sym = "";
-
-                            if (tmp_str[current_char] != '\r' && tmp_str[current_char] != '\n')
-                            {
-                                bool space = false;
-                                for (int i = current_char; i < tmp_str.Length; i++)
-                                {
-                                    if (lexem == "" && tmp_str[i] == ' ')
-                                        continue;
-                                    if (tmp_str[i] == '\n' || tmp_str[i] == '\r')
-                                        continue;
-                                    if (tmp_str[i] == ',')
-                                    {
-                                        lexem += tmp_str[i];
-                                        break;
-                                    }
-                                    if (tmp_str[i] == ' ')
-                                    {
-                                        space = true;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        lexem += tmp_str[i];
-                                        sym += Convert.ToString(i) + ';';
-                                        continue;
-                                    }
-                                }
-
-                                StringBuilder output = new StringBuilder();
-
-                                string[] numbers = sym.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-                                if (numbers.Length > 0)
-                                {
-                                    int startRange = Convert.ToInt32(numbers[0]);
-                                    int endRange = startRange;
-
-                                    for (int i = 1; i < numbers.Length; i++)
-                                    {
-                                        int currentNumber = Convert.ToInt32(numbers[i]);
-
-                                        if (currentNumber - 1 == endRange)
-                                        {
-                                            endRange = currentNumber;
-                                        }
-                                        else
-                                        {
-                                            if (startRange != endRange)
-                                                output.Append(startRange + "-" + endRange + "; ");
-                                            else
-                                                output.Append(startRange + "; ");
-
-                                            startRange = currentNumber;
-                                            endRange = currentNumber;
-                                        }
-                                    }
-
-                                    if (startRange != endRange)
-                                        output.Append(startRange + "-" + endRange + "; ");
-                                    else
-                                        output.Append(startRange + "; ");
-
-                                    string result = output.ToString();
-
-                                    if (lexem != pr_lexem)
-                                    {
-                                        string fin_lexem = lexem.Replace(',', ' ');
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символы при объявлении числа с плавающей точкой", Lexem = fin_lexem, Symbol = result + "", String = "" + current_string });
-                                        if (lexem.Last() != ',')
-                                            Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: отсутствует разделитель", Lexem = fin_lexem, Symbol = current_char + ";", String = "" + current_string });
-                                    }
-
-                                    pr_lexem = "";
-                                    for (int x = 0; x < lexem.Length; x++)
-                                    {
-
-                                        if (x == 0)
-                                            continue;
-                                        else
-                                            pr_lexem += lexem[x];
-                                    }
-                                }
-                            }
-                            current_char++;
-                        }
-                    }
-                    else
-                        break;
-                }
-                if (current_state == "DECIMALREM")
-                {
-                    lexem = "";
-
-                    if (chars_in_string.Count > 0 && current_char < chars_in_string.Count)
-                    {
-                        int d;
-
-                        if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
-                        {
-                            if (chars_in_string[current_char] == ',')
-                            {
-                                current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                                if (current_char < chars_in_string.Count)
-                                    current_char++;
-                                continue;
-                            }
-                            else if (chars_in_string[current_char] == ']')
-                            {
-                                current_state = transitions[current_state][chars_in_string[current_char] + ""];
-                                if (current_char < chars_in_string.Count)
-                                    current_char++;
-                                continue;
-                            }
-                            else
-                                current_char++; ;
-
-                        }
-                        else
-                        {
-                            int code = 19;
-                            string tmp_str = tmp[current_string - 1];
-                            string sym = "";
-
-                            if (tmp_str[current_char] != '\r' && tmp_str[current_char] != '\n')
-                            {
-                                bool space = false;
-                                for (int i = current_char; i < tmp_str.Length; i++)
-                                {
-                                    if (lexem == "" && tmp_str[i] == ' ')
-                                        continue;
-                                    if (tmp_str[i] == '\n' || tmp_str[i] == '\r')
-                                        continue;
-                                    if (tmp_str[i] == ',')
-                                    {
-                                        lexem += tmp_str[i];
-                                        break;
-                                    }
-                                    if (tmp_str[i] == ' ')
-                                    {
-                                        space = true;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        lexem += tmp_str[i];
-                                        sym += Convert.ToString(i) + ';';
-                                        continue;
-                                    }
-                                }
-
-                                StringBuilder output = new StringBuilder();
-
-                                string[] numbers = sym.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-                                if (numbers.Length > 0)
-                                {
-                                    int startRange = Convert.ToInt32(numbers[0]);
-                                    int endRange = startRange;
-
-                                    for (int i = 1; i < numbers.Length; i++)
-                                    {
-                                        int currentNumber = Convert.ToInt32(numbers[i]);
-
-                                        if (currentNumber - 1 == endRange)
-                                        {
-                                            endRange = currentNumber;
-                                        }
-                                        else
-                                        {
-                                            if (startRange != endRange)
-                                                output.Append(startRange + "-" + endRange + "; ");
-                                            else
-                                                output.Append(startRange + "; ");
-
-                                            startRange = currentNumber;
-                                            endRange = currentNumber;
-                                        }
-                                    }
-
-                                    if (startRange != endRange)
-                                        output.Append(startRange + "-" + endRange + "; ");
-                                    else
-                                        output.Append(startRange + "; ");
-
-                                    string result = output.ToString();
-
-                                    if (lexem != pr_lexem)
-                                    {
-                                        string fin_lexem = lexem.Replace(',', ' ');
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символы при объявлении числа с плавающей точкой", Lexem = fin_lexem, Symbol = result + "", String = "" + current_string });
-                                        if (lexem.Last() != ',')
-                                            Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: отсутствует разделитель", Lexem = fin_lexem, Symbol = current_char + ";", String = "" + current_string });
-                                    }
-
-                                    pr_lexem = "";
-                                    for (int x = 0; x < lexem.Length; x++)
-                                    {
-
-                                        if (x == 0)
-                                            continue;
-                                        else
-                                            pr_lexem += lexem[x];
-                                    }
-                                }
-                            }
-                            current_char++;
-                        }
-                    }
-                    else
-                        break;
-                }
-                if (current_state == "STRING")
-                {
-                    lexem = "";
-
-                    if (chars_in_string.Count > 0 && current_char < chars_in_string.Count)
-                    {
-                        int d;
-
-                        if (transitions[current_state].ContainsKey(chars_in_string[current_char] + ""))
-                        {
-
-                            if (chars_in_string[current_char] == '\"')
-                            {
-                                if (current_char + 1 < chars_in_string.Count)
-                                {
-                                    if (chars_in_string[current_char + 1] == ',')
-                                    {
-                                        current_char++;
-                                        current_state = transitions[current_state]["\","];
-                                    }
-                                    if (chars_in_string[current_char] == ']')
-                                    {
-                                        current_char++;
-                                        current_state = transitions[current_state]["\","];
-                                    }
-                                    if (chars_in_string[current_char] == '\"')
-                                    {
-                                        int j = current_char + 1;
-                                        while (j < chars_in_string.Count)
-                                        {
-                                            if (chars_in_string[j] == ']')
-                                                break;
-                                            if (chars_in_string[j] == ',')
-                                                break;
-                                            if (chars_in_string[j] == '\"')
-                                            {
-                                                string tmp_str = tmp[current_string - 1];
-                                                Output.Items.Add(new OutputItem { Code = "" + Convert.ToString(19), Type = "Ошибка: недопустимый символ внутри кавычек", Lexem = tmp_str, Symbol = current_char + "", String = "" + current_string });
-                                                break;
-                                            }
-                                            else
-                                            {
-                                                string tmp_str = tmp[current_string - 1];
-                                                Output.Items.Add(new OutputItem { Code = "" + Convert.ToString(19), Type = "Ошибка: отсутствует разделитель", Lexem = tmp_str, Symbol = j + "", String = "" + current_string });
-                                            }
-                                            if (j + 1 < chars_in_string.Count)
-                                                j++;
-                                            else
-                                                break;
-                                        }
-                                    }
-                                }
-                                current_char++;
-                                continue;
-                            }
-                            else if (chars_in_string[current_char] == ' ' && current_word == "")
-                            {
-                                current_char++;
-                                continue;
-                            }
-
-                            else
-                                current_char++; ;
-
-                        }
-                        else
-                        {
-                            int code = 19;
-                            string tmp_str = tmp[current_string - 1];
-                            string sym = "";
-
-                            if (tmp_str[current_char] != '\r' && tmp_str[current_char] != '\n')
-                            {
-                                bool space = false;
-                                for (int i = current_char; i < tmp_str.Length; i++)
-                                {
-                                    if (lexem == "" && tmp_str[i] == ' ')
-                                        continue;
-                                    if (tmp_str[i] == '\n' || tmp_str[i] == '\r')
-                                        continue;
-                                    if (tmp_str[i] == ',')
-                                    {
-                                        lexem += tmp_str[i];
-                                        break;
-                                    }
-                                    if (tmp_str[i] == ' ')
-                                    {
-                                        space = true;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        lexem += tmp_str[i];
-                                        sym += Convert.ToString(i) + ';';
-                                        continue;
-                                    }
-                                }
-
-                                StringBuilder output = new StringBuilder();
-
-                                string[] numbers = sym.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-                                if (numbers.Length > 0)
-                                {
-                                    int startRange = Convert.ToInt32(numbers[0]);
-                                    int endRange = startRange;
-
-                                    for (int i = 1; i < numbers.Length; i++)
-                                    {
-                                        int currentNumber = Convert.ToInt32(numbers[i]);
-
-                                        if (currentNumber - 1 == endRange)
-                                        {
-                                            endRange = currentNumber;
-                                        }
-                                        else
-                                        {
-                                            if (startRange != endRange)
-                                                output.Append(startRange + "-" + endRange + "; ");
-                                            else
-                                                output.Append(startRange + "; ");
-
-                                            startRange = currentNumber;
-                                            endRange = currentNumber;
-                                        }
-                                    }
-
-                                    if (startRange != endRange)
-                                        output.Append(startRange + "-" + endRange + "; ");
-                                    else
-                                        output.Append(startRange + "; ");
-
-                                    string result = output.ToString();
-
-                                    
-                                        string fin_lexem = lexem.Replace(',', ' ');
-                                        Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: недопустимые символы при объявлении числа строки/символа", Lexem = fin_lexem, Symbol = result + "", String = "" + current_string });
-                                        if (lexem.Last() != ',')
-                                            Output.Items.Add(new OutputItem { Code = "" + code, Type = "Ошибка: отсутствует разделитель", Lexem = fin_lexem, Symbol = current_char + ";", String = "" + current_string });
-                                    
-
-                                    pr_lexem = "";
-                                    for (int x = 0; x < lexem.Length; x++)
-                                    {
-
-                                        if (x == 0)
-                                            continue;
-                                        else
-                                            pr_lexem += lexem[x];
-                                    }
-                                }
-                            }
-                            current_char++;
-                        }
-                    }
-                    else
-                        break;
-                }
-                
+                code = 2;
+                type = "Ключевое слово";
+                return code;
             }
-            string tmp_str2 = tmp[current_string - 1];
-            if (tmp_str2.Contains('[') && !tmp_str2.Contains(']'))
-                Output.Items.Add(new OutputItem { Code = "" + 19, Type = "Ошибка: в конце инициализации списка ожидается ]", Lexem = tmp_str2, Symbol = Convert.ToString(tmp_str2.Length - 1), String = "" + current_string });
-            if (Output.Items.Count == 0)
-                Errors.Visibility = Visibility.Visible;
-            if (Output.Items.Count > 0)
-                Errors.Visibility = Visibility.Hidden;
+            else if (word == "char")
+            {
+                code = 3;
+                type = "Ключевое слово";
+                return code;
+            }
+            else if (word == "string")
+            {
+                code = 4;
+                type = "Ключевое слово";
+                return code;
+            }
+            else if (word == "true")
+            {
+                code = 6;
+                type = "Ключевое слово";
+                return code;
+            }
+            else if (word == "false")
+            {
+                code = 7;
+                type = "Ключевое слово";
+                return code;
+            }
+            else if (word == " " || word == ";" || word == ",")
+            {
+                code = 8;
+                type = "Разделитель";
+                return code;
+            }
+            else if (word.Contains('\r') && word.Length == 1)
+            {
+                code = 9;
+                type = "Переход на новую строку";
+                return code;
+            }
+            else if (word == "=")
+            {
+                code = 10;
+                type = "Оператор присваивания";
+                return code;
+            }
+            else if (word == "[")
+            {
+                code = 11;
+                type = "Объявление блока инициализации";
+                return code;
+            }
+            else if (word == "]")
+            {
+                code = 12;
+                type = "Конец блока инициализации";
+                return code;
+            }
+            else if (Int32.TryParse(word, out int number))
+            {
+                code = 13;
+                type = "Целое число";
+                return code;
+            }
+            else if (Double.TryParse(word, out double number2))
+            {
+                code = 14;
+                type = "Вещественное число";
+                return code;
+            }
+            else if (word[0] == '\"' && word.Last() == '\"')
+            {
+                code = 15;
+                type = "Строка";
+                return code;
+            }
+            else if (IdCheck(word))
+            {
+                code = 5;
+                type = "Идентификатор";
+                return code;
+            }
+            else
+            {
+                code = 19;
+                type = "Ошибка: недопустимые символы";
+                return code;
+            }
         }
-
-        /* 1) DEF->letter LISTNAME
-         2) LISTNAME->letter LISTNAME | = ASSIGNTMENT
-         3) ASSIGNTMENT-> [ITEMS
-         4) ITEMS-> [+| -] NUMBER | " STRING
-         5) NUMBER->digit NUMBERREM
-         6) NUMBERREM-> , ITEMS | ] | digit NUMBERREM | .DECIMAL
-         7) DECIMAL->digit DECIMALREM
-         8) DECIMALREM-> , ITEMS | ] | digit DECIMALREM
-         9) STRING-> "] | ", ITEMS | symbol STRING*/
-
         private bool IdCheck(string str)
         {
             bool isValidated = true;
 
             for (int c = 0; c < str.Length; c++)
             {
-                if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+                if (c == 0)
                 {
-                    isValidated = false;
+                    if (!((str[c] >= 'a' && str[c] <= 'z') || (str[c] >= 'A' && str[c] <= 'Z') || (str[c] == '_')))
+                    {
+                        isValidated = false;
+                    }
                 }
+                else
+                {
+                    if (!((str[c] >= 'a' && str[c] <= 'z') || (str[c] >= 'A' && str[c] <= 'Z') || (str[c] >= '0' && str[c] <= '9') || (str[c] == '_')))
+                    {
+                        isValidated = false;
+                    }
+                }            
             }
             return isValidated;
         }
-        private void Lexer(string word)
+        private void Run(object sender, EventArgs e)
         {
-            int code = 0;
-            string type = "";
+            Output.Items.Clear();
+            string[] allStrings = Input.Text.Split('\n');                    
+            
+            for (int i = 0; i < allStrings.Length; i++)
+            {
+                int char_index = 0;
+                string lexem = "";
+                string corrected_string = "";
+                string current_state = "DEF";
+                bool errors = false;
+                while (true)
+                {
+                    if (Input.Text != "" && char_index < Input.Text.Length && char_index < allStrings[i].Length && allStrings[i] != "")
+                    {
+                        if (current_state == "DEF")
+                        {
+                            if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                            {
+                                current_state = transitions[current_state][allStrings[i][char_index] + ""];                     
+                                lexem = allStrings[i][char_index] + "";
+                                corrected_string += lexem;
+                                char_index++;
+                                continue;
+                            }
+                            else if (allStrings[i][char_index] == ' ')
+                            {
+                                char_index++;
+                                continue;
+                            }
+                            else if (allStrings[i][char_index] == '\r')
+                            {
+                                break;
+                            } 
+                            else
+                            {
+                                int start = char_index;
+                                int end = char_index;
+                                errors = true;
+                                while (true)
+                                {
+                                    if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                    {                                       
+                                        if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                        {
+                                            current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            if (allStrings[i][char_index] == '\r')
+                                                break;
+                                            lexem += allStrings[i][char_index] + "";
+                                            end = char_index;
+                                            char_index++;                 
+                                        }
+                                    }
+                                    else
+                                        break;
+                                }
+                                if (start == end)
+                                {
+                                    Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: недопустимый символ при начале объявления идентификатора", Lexem = lexem + "", Symbol = Convert.ToString(start), String = Convert.ToString(i + 1)});
+                                }
+                                else if (start < end)
+                                {
+                                    Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: недопустимые символы при начале объявления идентификатора", Lexem = lexem + "", Symbol = Convert.ToString(start) + "-" + Convert.ToString(end), String = Convert.ToString(i + 1) });
+                                }
+                                continue;
+                            }
+                        }
+                        if (current_state == "LISTNAME")
+                        {
+                            if (Input.Text != "" && char_index < Input.Text.Length && char_index < allStrings[i].Length && allStrings[i] != "")
+                            {
+                                if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                {
+                                    current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                    if (current_state == "ASSIGNTMENT")
+                                    {
+                                        string err = lexem;
+                                        err = err.TrimEnd();
+                                        //MessageBox.Show(corrected_string);
+                                        int code = Lexer(corrected_string);
+                                        if (code == 5)
+                                        {
+                                            corrected_string += allStrings[i][char_index];
+                                            lexem = "";
+                                            char_index++;
+                                            continue;
+                                        }
+                                        else if (code == 1 || code == 2 || code == 3 || code == 4 || code == 6 || code == 7)
+                                        {
+                                            string err_lexem = lexem;
+                                            corrected_string = corrected_string.Substring(0, corrected_string.Length - 1);
+                                            Output.Items.Add(new OutputItem { Code = code + "", Type = "Ошибка: в качестве идентификатора использовано ключевое слово", Lexem = err_lexem, Symbol = Convert.ToString(char_index - (err_lexem.Length)) + "-" + Convert.ToString(char_index - 1), String = Convert.ToString(i + 1) });
+                                            char_index++;
+                                            continue;
+                                        }
+                                    }
+                                    if (current_state == "LISTNAME")
+                                    {
 
-            if (word == "")
-                return;
-            else if (word == "int")
-            {
-                code = 1;
-                type = "Ключевое слово";
-            }
-            else if (word == "bool")
-            {
-                code = 2;
-                type = "Ключевое слово";
-            }
-            else if (word == "char")
-            {
-                code = 3;
-                type = "Ключевое слово";
-            }
-            else if (word == "string")
-            {
-                code = 4;
-                type = "Ключевое слово";
-            }
-            else if (word == "true")
-            {
-                code = 6;
-                type = "Ключевое слово";
-            }
-            else if (word == "false")
-            {
-                code = 7;
-                type = "Ключевое слово";
-            }
-            else if (word == " " || word == ";" || word == ",")
-            {
-                code = 8;
-                type = "Разделитель";
-            }
-            else if (word.Contains('\r') && word.Length == 1)
-            {
-                code = 9;
-                type = "Переход на новую строку";
-            }
-            else if (word == "=")
-            {
-                code = 10;
-                type = "Оператор присваивания";
-            }
-            else if (word == "[")
-            {
-                code = 11;
-                type = "Объявление блока инициализации";
-            }
-            else if (word == "]")
-            {
-                code = 12;
-                type = "Конец блока инициализации";
-            }
-            else if (Int32.TryParse(word, out int number))
-            {
-                code = 13;
-                type = "Целое число";
-            }
-            else if (Double.TryParse(word, out double number2))
-            {
-                code = 14;
-                type = "Вещественное число";
-            }
-            else if (word[0] == '\"' && word.Last() == '\"')
-            {
-                code = 15;
-                type = "Строка";
-            }
-            else if (word[0] == '\'' && word.Last() == '\'' && word.Length == 3)
-            {
-                code = 16;
-                type = "Символ";
-            }
-            else if (IdCheck(word))
-            {
-                code = 5;
-                type = "Идентификатор";
-            }
-            else
-            {
-                code = 19;
-                type = "Ошибка: недопустимые символы";
-            }
-            // Output.Items.Add(new OutputItem { Code = "" + code, Type = type, Lexem = word, Symbol = symbol, String = "" + strings_count });
+                                        lexem += allStrings[i][char_index];
+                                        corrected_string += allStrings[i][char_index]; 
+                                        if (char_index == allStrings[i].Length - 1)
+                                        {
+                                            lexem = lexem.TrimEnd();
+                                            int code = Lexer(lexem);
+                                            if (code == 1 || code == 2 || code == 3 || code == 4 || code == 6 || code == 7)
+                                            {
+                                                string err_lexem = lexem;
+                                                int d = lexem.Length - 1;
+                                                //corrected_string = corrected_string.Substring(0, corrected_string.Length - 1);
+                                                Output.Items.Add(new OutputItem { Code = code + "", Type = "Ошибка: в качестве идентификатора использовано ключевое слово", Lexem = lexem, Symbol = Convert.ToString(char_index - (lexem.Length - 1)) + "-" + Convert.ToString(char_index), String = Convert.ToString(i + 1) });
+                                            }
+                                        }
+                                        char_index++;
+                                        continue;
+                                    }                                  
+                                }
+                                else
+                                {
+                                    errors = true;
+                                    List<int> numbers = new List<int>();
+                                    string corrected_lexem = corrected_string;
+                                    while (true)
+                                    {
+                                        if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                        {
+                                            if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                            {
+                                                if (allStrings[i][char_index] == '=' || char_index == allStrings[i].Length-1)
+                                                {
+                                                    if (allStrings[i][char_index] == '=')
+                                                        current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+                                                lexem += allStrings[i][char_index] + "";
+                                                corrected_lexem += allStrings[i][char_index] + "";
+                                                corrected_string = corrected_lexem;
+                                                char_index++;
+                                            }
+                                            else if (allStrings[i][char_index] == ' ')
+                                            {
+                                                lexem = lexem.TrimEnd();
+                                                int code = Lexer(corrected_string);
+                                                if (code == 1 || code == 2 || code == 3 || code == 4 || code == 6 || code == 7)
+                                                {
+                                                    string err_lexem = lexem;
+                                                    int d = lexem.Length - 1;
+                                                    if (lexem.Contains(corrected_string))
+                                                        Output.Items.Add(new OutputItem { Code = code + "", Type = "Ошибка: в качестве идентификатора использовано ключевое слово", Lexem = lexem, Symbol = Convert.ToString(char_index  - (corrected_string.Length)) + "-" + Convert.ToString(char_index - 1), String = Convert.ToString(i + 1) });
+                                                    //corrected_string = corrected_string.Substring(0, corrected_string.Length - 1);
+                                                    //MessageBox.Show(corrected_string);
+                                                }
+                                                if (code != 5)
+                                                {
+                                                    corrected_string = corrected_string.Substring(0, corrected_string.Length - 1);
+                                                    //MessageBox.Show(corrected_string);                                          
+                                                }
+                                               
+                                                int start = char_index;
+                                                int end = char_index;
+                                                while (true)
+                                                {
+                                                    if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                                    {
+                                                        if (allStrings[i][char_index] == '=')
+                                                        {
+                                                            break;
+                                                        }
+                                                        if (allStrings[i][char_index] == '\r')
+                                                            break;
+                                                        if (allStrings[i][char_index] == '\n')
+                                                            break;
+                                                        else if (allStrings[i][char_index] == ' ')
+                                                        {
+                                                            lexem += allStrings[i][char_index];
+                                                            char_index++;                           
+                                                            continue;
+                                                        }
+                                                        else
+                                                        {
+                                                            end = char_index;
+                                                            lexem += allStrings[i][char_index];
+                                                            char_index++;
+                                                        }
+                                                    }
+                                                    else
+                                                        break;                                                                                                
+                                                }
+                                                if (start != end)
+                                                {
+                                                    for (int x = start; x <= end; x++)
+                                                    {
+                                                        numbers.Add(x);
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {                                                                                                   
+                                                if (allStrings[i][char_index] == '\r')
+                                                    break;
+                                                lexem += allStrings[i][char_index] + "";
+                                                numbers.Add(char_index);
+                                                char_index++;
+                                            }
+                                        }
+                                        else
+                                            break;
+                                    }
+                                    
+                                    if (numbers.Count > 0)
+                                    {
+                                        StringBuilder result = new StringBuilder();
+
+                                        int startRange = numbers[0];
+                                        int currentRange = numbers[0];
+
+                                        for (int j = 1; j < numbers.Count; j++)
+                                        {
+                                            if (numbers[j] == currentRange + 1)
+                                            {
+                                                currentRange = numbers[j];
+                                            }
+                                            else
+                                            {
+                                                if (startRange != currentRange)
+                                                {
+                                                    result.Append(startRange).Append("-").Append(currentRange).Append(";");
+                                                }
+                                                else
+                                                {
+                                                    result.Append(currentRange).Append(";");
+                                                }
+
+                                                startRange = numbers[j];
+                                                currentRange = numbers[j];
+                                            }
+                                        }
+
+                                        if (startRange != currentRange)
+                                        {
+                                            result.Append(startRange).Append("-").Append(currentRange);
+                                        }
+                                        else
+                                        {
+                                            result.Append(currentRange);
+                                        }
+
+                                        Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: неизвестные символы после объявления идентификатора", Lexem = lexem, Symbol = Convert.ToString(result), String = Convert.ToString(i + 1) });
+                                        //MessageBox.Show(corrected_string);
+                                        int code = Lexer(corrected_string);
+                                        if (code != 5)
+                                        {
+                                            corrected_string = corrected_string.Substring(0, corrected_string.Length - 1);
+                                            //MessageBox.Show(corrected_string);                                          
+                                        }
+                                        char_index++;
+                                        continue;
+                                    }
+
+                                   
+
+                                    if (char_index == allStrings[i].Length - 1)
+                                    {                               
+                                        lexem = lexem.TrimEnd();
+                                        int code = Lexer(corrected_string);
+                                        if (code == 1 || code == 2 || code == 3 || code == 4 || code == 6 || code == 7)
+                                        {
+                                            string err_lexem = lexem;
+                                            int d = lexem.Length - 1;
+                                            Output.Items.Add(new OutputItem { Code = code + "", Type = "Ошибка: в качестве идентификатора использовано ключевое слово", Lexem = lexem, Symbol = Convert.ToString(char_index - (corrected_string.Length)) + "-" + Convert.ToString(char_index - 1), String = Convert.ToString(i + 1) });
+                                            corrected_string = corrected_string.Substring(0, corrected_string.Length - 1);
+                                            //MessageBox.Show(corrected_string);
+                                        }                                   
+                                    }
+                                    char_index++;
+                                    continue;
+                                }
+                            }
+                            else
+                                break;
+                               
+                        }
+                        if (current_state == "ASSIGNTMENT")
+                        {
+                            corrected_string += "=";
+                            lexem = "";
+                            
+                            if (Input.Text != "" && char_index < Input.Text.Length && char_index < allStrings[i].Length && allStrings[i] != "")
+                            {
+                                if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                {
+                                    current_state = transitions[current_state][allStrings[i][char_index] + ""];                            
+                                }
+                                else
+                                {
+                                    errors = true;
+                                    List<int> numbers = new List<int>();
+                                    string corrected_lexem = corrected_string;
+                                    while (true)
+                                    {
+                                        if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                        {
+                                            if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                            {
+                                                if (allStrings[i][char_index] == '[' || char_index == allStrings[i].Length - 1)
+                                                {
+                                                    if (allStrings[i][char_index] == '[')
+                                                        current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+                                                lexem += allStrings[i][char_index] + "";
+                                                corrected_lexem += allStrings[i][char_index] + "";
+                                                corrected_string = corrected_lexem;
+                                                char_index++;
+                                            }
+                                            else if (allStrings[i][char_index] == ' ')
+                                            {
+                                                                                             
+                                                int start = char_index;
+                                                int end = char_index;
+                                                while (true)
+                                                {
+                                                    if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                                    {
+                                                        if (allStrings[i][char_index] == '[')
+                                                        {                                                     
+                                                            break;
+                                                        }
+                                                        if (allStrings[i][char_index] == '\r')
+                                                            break;
+                                                        if (allStrings[i][char_index] == '\n')
+                                                            break;
+                                                        else if (allStrings[i][char_index] == ' ')
+                                                        {
+                                                            lexem += allStrings[i][char_index];
+                                                            char_index++;
+                                                            continue;
+                                                        }
+                                                        else
+                                                        {
+                                                            end = char_index;
+                                                            lexem += allStrings[i][char_index];
+                                                            char_index++;
+                                                        }
+                                                    }
+                                                    else
+                                                        break;
+                                                }
+                                                if (start != end)
+                                                {
+                                                    for (int x = start; x <= end; x++)
+                                                    {
+                                                        numbers.Add(x);
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (allStrings[i][char_index] == '\r')
+                                                    break;
+                                                if (allStrings[i][char_index] == '\n')
+                                                    break;
+                                                
+                                                lexem += allStrings[i][char_index] + "";
+                                                numbers.Add(char_index);
+                                                char_index++;
+                                            }
+                                        }
+                                        else
+                                            break;
+                                    }
+
+                                    if (numbers.Count > 0)
+                                    {
+                                        StringBuilder result = new StringBuilder();
+
+                                        int startRange = numbers[0];
+                                        int currentRange = numbers[0];
+
+                                        for (int j = 1; j < numbers.Count; j++)
+                                        {
+                                            if (numbers[j] == currentRange + 1)
+                                            {
+                                                currentRange = numbers[j];
+                                            }
+                                            else
+                                            {
+                                                if (startRange != currentRange)
+                                                {
+                                                    result.Append(startRange).Append("-").Append(currentRange).Append(";");
+                                                }
+                                                else
+                                                {
+                                                    result.Append(currentRange).Append(";");
+                                                }
+
+                                                startRange = numbers[j];
+                                                currentRange = numbers[j];
+                                            }
+                                        }
+
+                                        if (startRange != currentRange)
+                                        {
+                                            result.Append(startRange).Append("-").Append(currentRange);
+                                        }
+                                        else
+                                        {
+                                            result.Append(currentRange);
+                                        }
+
+                                        Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: неизвестные символы при инициализации списка", Lexem = lexem, Symbol = Convert.ToString(result), String = Convert.ToString(i + 1) });
+                                        //MessageBox.Show(corrected_string);
+                                        char_index++;
+                                        continue;
+                                    }
+                                    char_index++;
+                                    continue;
+
+                                }
+                            }
+                        }
+                        if (current_state == "ITEMS")
+                        {
+                            //MessageBox.Show("ITEMS");
+                            if (!corrected_string.Contains('['))
+                                corrected_string += "[";
+                            lexem = "";
+
+                            if (Input.Text != "" && char_index < Input.Text.Length && char_index < allStrings[i].Length && allStrings[i] != "")
+                            {
+                                if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                {
+                                    current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                    corrected_string += allStrings[i][char_index];
+                                    char_index++;
+                                }
+                                else
+                                {
+                                    errors = true;
+                                    List<int> numbers = new List<int>();
+                                    string corrected_lexem = corrected_string;
+                                    bool flag = false;
+                                    while (true)
+                                    {                                      
+                                        if (char_index < Input.Text.Length && char_index < allStrings[i].Length && !flag)
+                                        {
+                                            if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                            {
+                                                if (allStrings[i][char_index] == ']' || char_index == allStrings[i].Length - 1)
+                                                {
+                                                    if (allStrings[i][char_index] == ']')
+                                                        current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+                                                
+                                                lexem += allStrings[i][char_index] + "";
+                                                corrected_lexem += allStrings[i][char_index] + "";
+                                                corrected_string = corrected_lexem;
+                                                char_index++;
+                                            }
+                                            else if (allStrings[i][char_index] == ' ')
+                                            {
+
+                                                int start = char_index;
+                                                int end = char_index;
+                                                while (true)
+                                                {
+                                                    if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                                    {
+                                                        if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                                        {
+                                                            current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                            corrected_string += allStrings[i][char_index];
+                                                            flag = true;
+                                                            break;
+                                                        }
+                                                        if (allStrings[i][char_index] == '\r')
+                                                            break;
+                                                        if (allStrings[i][char_index] == '\n')
+                                                            break;
+                                                        if (allStrings[i][char_index] == ']')
+                                                        {
+                                                            current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                            corrected_string += allStrings[i][char_index];
+                                                            flag = true;
+                                                            break;
+                                                        }
+                                                        if (allStrings[i][char_index] == '+')
+                                                        {
+                                                            current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                            corrected_string += allStrings[i][char_index];
+                                                            flag = true;
+                                                            break;
+                                                        }
+
+                                                        if (allStrings[i][char_index] == '-')
+                                                        {
+                                                            current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                            flag = true;
+                                                            corrected_string += allStrings[i][char_index];
+                                                            break;
+                                                        }
+
+                                                        if (allStrings[i][char_index] == '\"')
+                                                        {
+                                                            current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                            corrected_string += allStrings[i][char_index];
+                                                            flag = true;
+                                                            break;
+                                                        }
+
+                                                        else if (allStrings[i][char_index] == ' ')
+                                                        {
+                                                            lexem += allStrings[i][char_index];
+                                                            char_index++;
+                                                            continue;
+                                                        }
+                                                        else
+                                                        {
+                                                            end = char_index;
+                                                            lexem += allStrings[i][char_index];
+                                                            char_index++;
+                                                        }
+                                                    }
+                                                    else
+                                                        break;
+                                                }
+                                                if (start != end)
+                                                {
+                                                    for (int x = start; x <= end; x++)
+                                                    {
+                                                        numbers.Add(x);
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (allStrings[i][char_index] == '\r')
+                                                    break;
+                                                if (allStrings[i][char_index] == '\n')
+                                                    break;
+                                                if (allStrings[i][char_index] == ']')
+                                                {
+                                                    current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+                                                if (allStrings[i][char_index] == '[')
+                                                {
+                                                    break;
+                                                }
+                                                if (allStrings[i][char_index] == '+')
+                                                {
+                                                    current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+
+                                                if (allStrings[i][char_index] == '-')
+                                                {
+                                                    current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+
+                                                if (allStrings[i][char_index] == '\"')
+                                                {
+                                                    current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+                                                lexem += allStrings[i][char_index] + "";
+                                                numbers.Add(char_index);
+                                                char_index++;
+                                            }
+                                        }
+                                        else
+                                            break;
+                                    }
+
+                                    if (numbers.Count > 0)
+                                    {
+                                        StringBuilder result = new StringBuilder();
+
+                                        int startRange = numbers[0];
+                                        int currentRange = numbers[0];
+
+                                        for (int j = 1; j < numbers.Count; j++)
+                                        {
+                                            if (numbers[j] == currentRange + 1)
+                                            {
+                                                currentRange = numbers[j];
+                                            }
+                                            else
+                                            {
+                                                if (startRange != currentRange)
+                                                {
+                                                    result.Append(startRange).Append("-").Append(currentRange).Append(";");
+                                                }
+                                                else
+                                                {
+                                                    result.Append(currentRange).Append(";");
+                                                }
+
+                                                startRange = numbers[j];
+                                                currentRange = numbers[j];
+                                            }
+                                        }
+
+                                        if (startRange != currentRange)
+                                        {
+                                            result.Append(startRange).Append("-").Append(currentRange);
+                                        }
+                                        else
+                                        {
+                                            result.Append(currentRange);
+                                        }
+                                        lexem = lexem.Trim();
+                                        Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: неизвестные символы при объявлении элемента списка", Lexem = lexem, Symbol = Convert.ToString(result), String = Convert.ToString(i + 1) });
+                                        //MessageBox.Show(corrected_string);
+                                        char_index++;
+                                        continue;
+                                    }
+                                    char_index++;
+                                    continue;
+                                }
+                            }
+
+                        }
+                        if (current_state == "NUMBER")
+                        {
+                            if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                            {
+                                current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                lexem = allStrings[i][char_index] + "";
+                                corrected_string += lexem;
+                                char_index++;
+                                continue;
+                            }
+                            else if (allStrings[i][char_index] == ' ')
+                            {
+                                char_index++;
+                                continue;
+                            }
+                            else if (allStrings[i][char_index] == '\r')
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                errors = true;
+                                int start = char_index;
+                                int end = char_index;
+                                while (true)
+                                {
+                                    if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                    {
+                                        if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                        {
+                                            current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                            corrected_string += allStrings[i][char_index];
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            if (allStrings[i][char_index] == '\r')
+                                                break;
+                                            lexem += allStrings[i][char_index] + "";
+                                            end = char_index;
+                                            char_index++;
+                                        }
+                                    }
+                                    else
+                                        break;
+                                }
+                                lexem = lexem.Trim();
+                                if (start == end)
+                                {
+                                    Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: недопустимый символ при начале объявления целого числа", Lexem = lexem + "", Symbol = Convert.ToString(start), String = Convert.ToString(i + 1) });
+                                }
+                                else if (start < end)
+                                {
+                                    Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: недопустимые символы при начале объявления целого числа", Lexem = lexem + "", Symbol = Convert.ToString(start) + "-" + Convert.ToString(end), String = Convert.ToString(i + 1) });
+                                }
+                                //MessageBox.Show(corrected_string);
+                                continue;
+                            }
+                        }
+                        if (current_state == "NUMBERREM")
+                        {
+                            if (Input.Text != "" && char_index < Input.Text.Length && char_index < allStrings[i].Length && allStrings[i] != "")
+                            {
+                                if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                {
+                                    current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                    if (current_state == "DECIMAL")
+                                    {
+                                        corrected_string += allStrings[i][char_index];
+                                        lexem = "";
+                                        char_index++;
+                                        continue;
+                                    }
+                                    if (current_state == "NUMBERREM")
+                                    {
+                                        lexem += allStrings[i][char_index];
+                                        corrected_string += allStrings[i][char_index];
+                                        char_index++;
+                                        continue;
+                                    }
+                                    if (current_state == "ITEMS")
+                                    {
+                                        lexem += allStrings[i][char_index];
+                                        corrected_string += allStrings[i][char_index];
+                                        char_index++;
+                                        continue;
+                                    }
+                                }
+                                else
+                                {
+                                    errors = true;
+                                    List<int> numbers = new List<int>();
+                                    string corrected_lexem = corrected_string;
+                                    while (true)
+                                    {
+                                        if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                        {
+                                            if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                            {
+                                                if (allStrings[i][char_index] == '.' || char_index == allStrings[i].Length - 1)
+                                                {
+                                                    if (allStrings[i][char_index] == '.')
+                                                        current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+
+                                                if (allStrings[i][char_index] == ',' || char_index == allStrings[i].Length - 1)
+                                                {
+                                                    if (allStrings[i][char_index] == ',')
+                                                        current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+
+                                                if (allStrings[i][char_index] == ']' || char_index == allStrings[i].Length - 1)
+                                                {
+                                                    if (allStrings[i][char_index] == ']')
+                                                        current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+                                                lexem += allStrings[i][char_index] + "";
+                                                corrected_lexem += allStrings[i][char_index] + "";
+                                                corrected_string = corrected_lexem;
+                                                char_index++;
+                                            }
+                                            else if (allStrings[i][char_index] == ' ')
+                                            {            
+                                                int start = char_index;
+                                                int end = char_index;
+                                                while (true)
+                                                {
+                                                    if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                                    {
+                                                        if (allStrings[i][char_index] == ',')
+                                                        {
+                                                            break;
+                                                        }
+                                                        else if (allStrings[i][char_index] == ']')
+                                                        {
+                                                            break;
+                                                        }
+                                                        if (allStrings[i][char_index] == '\r')
+                                                            break;
+                                                        if (allStrings[i][char_index] == '\n')
+                                                            break;
+                                                        else if (allStrings[i][char_index] == ' ')
+                                                        {
+                                                            lexem += allStrings[i][char_index];
+                                                            char_index++;
+                                                            continue;
+                                                        }
+                                                        else
+                                                        {
+                                                            end = char_index;
+                                                            lexem += allStrings[i][char_index];
+                                                            char_index++;
+
+                                                        }
+                                                    }
+                                                    else
+                                                        break;
+                                                }
+                                                if (start != end)
+                                                {
+                                                    for (int x = start; x <= end; x++)
+                                                    {
+                                                        numbers.Add(x);
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (allStrings[i][char_index] == '\r')
+                                                    break;
+                                                else if (allStrings[i][char_index] == ']')
+                                                {
+                                                    break;
+                                                }
+                                                lexem += allStrings[i][char_index] + "";
+                                                numbers.Add(char_index);
+                                                char_index++;
+                                            }
+                                        }
+                                        else
+                                            break;
+                                    }
+
+                                    if (numbers.Count > 0)
+                                    {
+                                        StringBuilder result = new StringBuilder();
+
+                                        int startRange = numbers[0];
+                                        int currentRange = numbers[0];
+
+                                        for (int j = 1; j < numbers.Count; j++)
+                                        {
+                                            if (numbers[j] == currentRange + 1)
+                                            {
+                                                currentRange = numbers[j];
+                                            }
+                                            else
+                                            {
+                                                if (startRange != currentRange)
+                                                {
+                                                    result.Append(startRange).Append("-").Append(currentRange).Append(";");
+                                                }
+                                                else
+                                                {
+                                                    result.Append(currentRange).Append(";");
+                                                }
+
+                                                startRange = numbers[j];
+                                                currentRange = numbers[j];
+                                            }
+                                        }
+
+                                        if (startRange != currentRange)
+                                        {
+                                            result.Append(startRange).Append("-").Append(currentRange);
+                                        }
+                                        else
+                                        {
+                                            result.Append(currentRange);
+                                        }
+
+                                        Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: неизвестные символы при записи целого числа", Lexem = lexem, Symbol = Convert.ToString(result), String = Convert.ToString(i + 1) });
+                                        //MessageBox.Show(corrected_string);
+                                        char_index++;
+                                        continue;
+                                    }
+                                    char_index++;
+                                    continue;
+                                }
+                            }
+                            else
+                                break;
+                        }
+                        if (current_state == "STRING")
+                        {
+                            if (transitions[current_state].ContainsKey(allStrings[i][char_index] + "") && allStrings[i][char_index] != '\"')
+                            {
+                                current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                lexem = allStrings[i][char_index] + "";
+                                corrected_string += lexem;
+                                char_index++;       
+                                continue;
+                            }
+                            else if (transitions[current_state].ContainsKey(allStrings[i][char_index] + "") && allStrings[i][char_index] == '\"')
+                            {
+                                lexem = allStrings[i][char_index] + "";
+                                if (char_index + 1 < allStrings[i].Length)
+                                {
+                                    if (allStrings[i][char_index + 1] == ']')
+                                    {
+                                        current_state = transitions[current_state]["\"]"];
+                                        corrected_string += "\"";
+                                        char_index++;
+                                        continue;
+                                    }
+                                    if (allStrings[i][char_index + 1] == ',')
+                                    {
+                                        current_state = transitions[current_state]["\","];
+                                        corrected_string += "\",";
+                                        char_index++;
+                                        char_index++;
+                                        continue;
+                                    }                                  
+                                }
+                                int count = allStrings[i].Count(c => c == '\"');
+                                if (count > 2)
+                                {
+                                    errors = true;
+                                    Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: кавычки внутри кавычек", Lexem = lexem + "", Symbol = Convert.ToString(char_index), String = Convert.ToString(i + 1) });
+                                    char_index++;
+                                    continue;
+                                }
+                                if (count < 2)
+                                {
+                                    errors = true;
+                                    Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: нет закрывающей кавычки", Lexem = lexem + "", Symbol = Convert.ToString(char_index), String = Convert.ToString(i + 1) });
+                                    char_index++;
+                                    continue;
+                                }
+                            }
+                        }
+                        if (current_state == "END")
+                        {
+                            corrected_string += ']';
+                            //MessageBox.Show(corrected_string);
+                            break;
+                        }
+                        if (current_state == "DECIMAL")
+                        {
+                            if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                            {
+                                current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                lexem = allStrings[i][char_index] + "";
+                                corrected_string += lexem;
+                                char_index++;
+                                continue;
+                            }
+                            else if (allStrings[i][char_index] == '\r')
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                errors = true;
+                                int start = char_index;
+                                int end = char_index;
+                                while (true)
+                                {
+                                    if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                    {
+                                        if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                        {
+                                            current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                            corrected_string += allStrings[i][char_index];
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            if (allStrings[i][char_index] == '\r')
+                                                break;
+                                            lexem += allStrings[i][char_index] + "";
+                                            end = char_index;
+                                            char_index++;
+                                        }
+                                    }
+                                    else
+                                        break;
+                                }
+                                lexem = lexem.Trim();
+                                if (start == end)
+                                {
+                                    string buf = "";
+                                    if (lexem == " " || lexem == "")
+                                        buf = "Разделитель(Пробел)";
+                                    else
+                                        buf = lexem;
+                                    Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: недопустимый символ при начале объявления числа с плавающей точкой", Lexem = buf + "", Symbol = Convert.ToString(start), String = Convert.ToString(i + 1) });
+                                }
+                                else if (start < end)
+                                {
+                                    string buf = "";
+                                    if (lexem == " " || lexem == "")
+                                        buf = "Разделитель(Пробел)";
+                                    else
+                                        buf = lexem;
+                                    Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: недопустимые символы при начале объявления числа с плавающей точкой", Lexem = buf + "", Symbol = Convert.ToString(start) + "-" + Convert.ToString(end), String = Convert.ToString(i + 1) });
+                                }
+                                //MessageBox.Show(corrected_string);
+                                continue;
+                            }
+                        }
+                        if (current_state == "DECIMALREM")
+                        {
+                            if (Input.Text != "" && char_index < Input.Text.Length && char_index < allStrings[i].Length && allStrings[i] != "")
+                            {
+                                if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                {
+                                    current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                    if (current_state == "DECIMALREM")
+                                    {
+                                        lexem += allStrings[i][char_index];
+                                        corrected_string += allStrings[i][char_index];
+                                        char_index++;
+                                        continue;
+                                    }
+                                    if (current_state == "ITEMS")
+                                    {
+                                        lexem += allStrings[i][char_index];
+                                        corrected_string += allStrings[i][char_index];
+                                        char_index++;
+                                        continue;
+                                    }
+                                }
+                                else
+                                {
+                                    errors = true;
+                                    List<int> numbers = new List<int>();
+                                    string corrected_lexem = corrected_string;
+                                    while (true)
+                                    {
+                                        if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                        {
+                                            if (transitions[current_state].ContainsKey(allStrings[i][char_index] + ""))
+                                            {
+
+                                                if (allStrings[i][char_index] == ']' || char_index == allStrings[i].Length - 1)
+                                                {
+                                                    if (allStrings[i][char_index] == ']')
+                                                        current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+                                                if (allStrings[i][char_index] == ',' || char_index == allStrings[i].Length - 1)
+                                                {
+                                                    if (allStrings[i][char_index] == ',')
+                                                        current_state = transitions[current_state][allStrings[i][char_index] + ""];
+                                                    break;
+                                                }
+                                                lexem += allStrings[i][char_index] + "";
+                                                corrected_lexem += allStrings[i][char_index] + "";
+                                                corrected_string = corrected_lexem;
+                                                char_index++;
+                                            }
+                                            else if (allStrings[i][char_index] == ' ')
+                                            {
+                                                int start = char_index;
+                                                int end = char_index;
+                                                while (true)
+                                                {
+                                                    if (char_index < Input.Text.Length && char_index < allStrings[i].Length)
+                                                    {
+                                                        
+                                                        if (allStrings[i][char_index] == ']')
+                                                        {
+                                                            break;
+                                                        }
+                                                        if (allStrings[i][char_index] == '\r')
+                                                            break;
+                                                        if (allStrings[i][char_index] == '\n')
+                                                            break;
+                                                        else if (allStrings[i][char_index] == ' ')
+                                                        {
+                                                            lexem += allStrings[i][char_index];
+                                                            char_index++;
+                                                            continue;
+                                                        }
+                                                        else
+                                                        {
+                                                            end = char_index;
+                                                            lexem += allStrings[i][char_index];
+                                                            char_index++;
+
+                                                        }
+                                                    }
+                                                    else
+                                                        break;
+                                                }
+                                                if (start != end)
+                                                {
+                                                    for (int x = start; x <= end; x++)
+                                                    {
+                                                        numbers.Add(x);
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (allStrings[i][char_index] == '\r')
+                                                    break;
+                                                else if (allStrings[i][char_index] == ']')
+                                                {
+                                                    break;
+                                                }
+                                                lexem += allStrings[i][char_index] + "";
+                                                numbers.Add(char_index);
+                                                char_index++;
+                                            }
+                                        }
+                                        else
+                                            break;
+                                    }
+
+                                    if (numbers.Count > 0)
+                                    {
+                                        StringBuilder result = new StringBuilder();
+
+                                        int startRange = numbers[0];
+                                        int currentRange = numbers[0];
+
+                                        for (int j = 1; j < numbers.Count; j++)
+                                        {
+                                            if (numbers[j] == currentRange + 1)
+                                            {
+                                                currentRange = numbers[j];
+                                            }
+                                            else
+                                            {
+                                                if (startRange != currentRange)
+                                                {
+                                                    result.Append(startRange).Append("-").Append(currentRange).Append(";");
+                                                }
+                                                else
+                                                {
+                                                    result.Append(currentRange).Append(";");
+                                                }
+
+                                                startRange = numbers[j];
+                                                currentRange = numbers[j];
+                                            }
+                                        }
+
+                                        if (startRange != currentRange)
+                                        {
+                                            result.Append(startRange).Append("-").Append(currentRange);
+                                        }
+                                        else
+                                        {
+                                            result.Append(currentRange);
+                                        }
+
+                                        Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: неизвестные символы при записи числа с плавающей точкой", Lexem = lexem, Symbol = Convert.ToString(result), String = Convert.ToString(i + 1) });
+                                        //MessageBox.Show(corrected_string);
+                                        char_index++;
+                                        continue;
+                                    }
+                                    char_index++;
+                                    continue;
+                                }
+                            }
+                            else
+                                break;
+                        }
+                    }
+                    else
+                        break;
+                }
+                if (errors)
+                {
+                    Output.Items.Add(new OutputItem { Code = "", Type = "Предложено исправление:", Lexem = corrected_string, Symbol = "" , String = Convert.ToString(i + 1) });
+                }
+
+
+            }         
         }
+
+      
+
+       
+        
 
         private void Grammatic_Click(object sender, RoutedEventArgs e)
         {
