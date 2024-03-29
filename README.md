@@ -16,7 +16,7 @@
     <p>8) DECIMALREM -> , ITEMS | ] | digit DECIMALREM</p>
     <p>9) STRING -> "] | ", ITEMS | symbol STRING</p>
     <h2>Граф конечного автомата:</h2>
-    <img src="https://github.com/bruhspirit/coursework/assets/160126744/f1340703-38fc-416c-a642-db8686984346">
+    <img src="https://github.com/bruhspirit/coursework/assets/160126744/4c4a64db-c3ff-465e-89b7-8218055bf55b">
     <h2>Примеры:</h2>
     <img src="https://github.com/bruhspirit/coursework/assets/160126744/c657d1d6-c27e-4fe3-bbb6-819aec60729b">
     <img src="https://github.com/bruhspirit/coursework/assets/160126744/1c473336-a7c7-407c-b010-237524b50d26">
