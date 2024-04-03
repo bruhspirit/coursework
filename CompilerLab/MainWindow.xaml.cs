@@ -2020,11 +2020,13 @@ namespace CompilerLab
                                                     break;
                                                 }
 
-                                                if (allStrings[i][z] == '\"')
+                                                if (allStrings[i][z] == '\"' && comma == false)
                                                 {
+                                                    //end = z;
                                                     z++;
-                                                    start = z;
-                                                    continue;
+                                                    //lexem += allStrings[i][z];
+                                                    comma = true;
+                                                    continue; 
                                                 }
 
                                                 else if (allStrings[i][z] == ']' && z == allStrings[i].Length - 1)
@@ -2034,8 +2036,12 @@ namespace CompilerLab
                                                 }
                                                    
                                                 else if (allStrings[i][z] == ' ')
+                                                {
+                                                    z++;
                                                     continue;
-                                                else
+                                                }
+                                                    
+                                                else 
                                                 { 
                                                     end = z;
                                                     lexem += allStrings[i][z];
@@ -2086,8 +2092,8 @@ namespace CompilerLab
                                                     result.Append(currentRange);
                                                 }
                                                 lexem = lexem.Trim();
-                                                
-                                                Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: неожиданные символы после записи строки", Lexem = lexem, Symbol = Convert.ToString(result), String = Convert.ToString(i + 1) });
+                                                if (start!=end) 
+                                                    Output.Items.Add(new OutputItem { Code = "19", Type = "Ошибка: неожиданные символы после записи строки", Lexem = lexem, Symbol = Convert.ToString(result), String = Convert.ToString(i + 1) });
                                                 //MessageBox.Show(corrected_string);
                                             }
                                         }
@@ -2428,7 +2434,7 @@ namespace CompilerLab
         {
             try
             {
-                System.Diagnostics.Process.Start("C:\\Users\\myndc\\OneDrive\\Desktop\\coursework-master\\CompilerLab\\Grammar.html");
+                System.Diagnostics.Process.Start(@"..\..\Grammar.html");
             }
             catch (System.ComponentModel.Win32Exception noBrowser)
             {
@@ -2445,7 +2451,7 @@ namespace CompilerLab
         {
             try
             {
-                System.Diagnostics.Process.Start("C:\\Users\\myndc\\OneDrive\\Desktop\\coursework-master\\CompilerLab\\Classification.html");
+                System.Diagnostics.Process.Start(@"..\..\Classification.html");
             }
             catch (System.ComponentModel.Win32Exception noBrowser)
             {
@@ -2462,7 +2468,7 @@ namespace CompilerLab
         {
             try
             {
-                System.Diagnostics.Process.Start("C:\\Users\\myndc\\OneDrive\\Desktop\\coursework-master\\CompilerLab\\methodAnalysis.html");
+                System.Diagnostics.Process.Start(@"..\..\methodAnalysis.html");
             }
             catch (System.ComponentModel.Win32Exception noBrowser)
             {
@@ -2479,7 +2485,7 @@ namespace CompilerLab
         {
             try
             {
-                System.Diagnostics.Process.Start("C:\\Users\\myndc\\OneDrive\\Desktop\\coursework-master\\CompilerLab\\problem.html");
+                System.Diagnostics.Process.Start(@"..\..\problem.html");
             }
             catch (System.ComponentModel.Win32Exception noBrowser)
             {
@@ -2496,7 +2502,7 @@ namespace CompilerLab
         {
             try
             {
-                System.Diagnostics.Process.Start("C:\\Users\\myndc\\OneDrive\\Desktop\\coursework-master\\CompilerLab\\Neutralizing.html");
+                System.Diagnostics.Process.Start(@"..\..\Neutralizing.html");
             }
             catch (System.ComponentModel.Win32Exception noBrowser)
             {
@@ -2513,7 +2519,7 @@ namespace CompilerLab
         {
             try
             {
-                System.Diagnostics.Process.Start("C:\\Users\\myndc\\OneDrive\\Desktop\\coursework-master\\CompilerLab\\testExamples.html");
+                System.Diagnostics.Process.Start(@"..\..\testExamples.html");
             }
             catch (System.ComponentModel.Win32Exception noBrowser)
             {
@@ -2530,7 +2536,7 @@ namespace CompilerLab
         {
             try
             {
-                System.Diagnostics.Process.Start("C:\\Users\\myndc\\OneDrive\\Desktop\\coursework-master\\CompilerLab\\LitList.html");
+                System.Diagnostics.Process.Start(@"..\..\LitList.html");
             }
             catch (System.ComponentModel.Win32Exception noBrowser)
             {
