@@ -135,7 +135,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Width="10*" Header="Код" Binding="{Binding Code}"></DataGridTextColumn>
                     <DataGridTextColumn Width="10*" Header="Тип" Binding="{Binding Type}"></DataGridTextColumn>
-                    <DataGridTextColumn  Width="50*" Header="Лексема" Binding="{Binding Lexem}"></DataGridTextColumn>
+                    <DataGridTextColumn  Width="50*" Header="Фрагмент" Binding="{Binding Lexem}"></DataGridTextColumn>
                     <DataGridTextColumn  Width="50*" Header="Символ" Binding="{Binding Symbol}"></DataGridTextColumn>
                     <DataGridTextColumn  Width="10*" Header="Строка" Binding="{Binding String}"></DataGridTextColumn>
                 </DataGrid.Columns>
